@@ -15,6 +15,8 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -4677,6 +4679,7 @@ window.addEventListener('DOMContentLoaded', () => {
       renderShiftSummary();
       if (typeof renderPlatformThemePackagesUI === 'function') renderPlatformThemePackagesUI();
       resolveURLRouting();
+      initFirebaseCloud();
       // Recover a recent unacknowledged order when the cashier/kitchen/owner opens after submission.
       setTimeout(restorePendingIncomingOrderAlarm, 120);
     });
@@ -4974,6 +4977,7 @@ window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('customer-restaurant-title').innerText = activeTenant.name;
       document.getElementById('customer-restaurant-desc').innerText = activeTenant.branch;
       updateAllTenantAvatars();
+      if (cloudDb) listenToCloudOrders();
       document.getElementById('links-restaurant-name').innerText = activeTenant.name;
 
       updateLiveLinksInputs();
@@ -6942,6 +6946,46 @@ window.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // UNIFIED REAL-TIME ORDERS ENGINE (KITCHEN, CASHIER, OWNER & CUSTOMER SYNC)
     // =========================================================================
+    // Firebase realtime bridge for cross-device customer -> cashier/kitchen/owner orders.
+    const firebaseConfig = { apiKey: "AIzaSyBLPjxVM_GOtpdsj1B4a_QvNnq78rPJLMg", authDomain: "crash-os-menu.firebaseapp.com", projectId: "crash-os-menu", storageBucket: "crash-os-menu.firebasestorage.app", messagingSenderId: "464164737437", appId: "1:464164737437:web:5a4accfdbb15fb00e7df74", measurementId: "G-W437WQQNHQ" };
+    let cloudDb = null;
+    let isCloudConnected = false;
+    let unsubscribeCloudOrders = null;
+    function initFirebaseCloud() {
+      try {
+        if (typeof firebase === 'undefined' || !firebase.firestore) return;
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        cloudDb = firebase.firestore(); isCloudConnected = true; listenToCloudOrders();
+        const badge = document.getElementById('hdr-cloud-badge'); if (badge) badge.textContent = '☁️ سحابي متصل ✓';
+      } catch (e) { isCloudConnected = false; console.warn('Firebase cloud fallback:', e); }
+    }
+    function listenToCloudOrders() {
+      if (!cloudDb) return;
+      try {
+        if (unsubscribeCloudOrders) unsubscribeCloudOrders();
+        const tenantId = Number(activeTenantId);
+        unsubscribeCloudOrders = cloudDb.collection('orders').where('tenantId', '==', tenantId).onSnapshot(snapshot => {
+          snapshot.docChanges().forEach(change => {
+            const order = { ...change.doc.data(), id: change.doc.id };
+            if (Number(order.tenantId) !== tenantId) return;
+            const existing = (kdsLiveOrders || []).find(o => o.id === order.id);
+            if (change.type === 'added' && !existing) {
+              kdsLiveOrders.unshift(order); saveOrdersToStorage();
+              renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor();
+              if (isStaffAlarmScreen()) receiveIncomingOrderAlarm(order);
+            } else if (change.type === 'modified') {
+              if (existing) Object.assign(existing, order); else kdsLiveOrders.unshift(order);
+              saveOrdersToStorage(); renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor();
+            }
+          });
+        }, err => console.warn('Firebase realtime listener error:', err));
+      } catch (e) { console.warn('Firebase realtime setup error:', e); }
+    }
+    function publishOrderToCloud(order) {
+      if (!cloudDb || !order) return;
+      try { cloudDb.collection('orders').doc(String(order.id)).set({ ...order, tenantId: Number(order.tenantId || activeTenantId), syncedAt: Date.now() }, { merge: true }).catch(err => console.warn('Firebase publish error:', err)); }
+      catch (e) { console.warn('Firebase publish setup error:', e); }
+    }
     function getStoredOrders() {
       try {
         const raw = SafeStorage.get('almohandis_live_orders');
@@ -7082,6 +7126,7 @@ window.addEventListener('DOMContentLoaded', () => {
         // 4. Save to Live Orders array & persistent Storage
         kdsLiveOrders.unshift(newOrder);
         saveOrdersToStorage();
+        publishOrderToCloud(newOrder);
 
         activeCustomerLiveOrder = newOrder;
         SafeStorage.set('almohandis_active_customer_order', JSON.stringify(newOrder));
