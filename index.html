@@ -6959,20 +6959,26 @@ window.addEventListener('DOMContentLoaded', () => {
         const badge = document.getElementById('hdr-cloud-badge'); if (badge) badge.textContent = '☁️ سحابي متصل ✓';
       } catch (e) { isCloudConnected = false; console.warn('Firebase cloud fallback:', e); }
     }
+    function getCloudRestaurantId() {
+      const t = (typeof activeTenant !== 'undefined' && activeTenant) || {};
+      if (t.slug === 'crash' || t.slug === 'crash-burger') return 'rest_crash_01';
+      return 'rest_' + String(t.slug || ('tenant_' + activeTenantId)).replace(/[^a-z0-9_-]/gi, '_') + '_' + String(activeTenantId).padStart(2, '0');
+    }
     function listenToCloudOrders() {
       if (!cloudDb) return;
       try {
         if (unsubscribeCloudOrders) unsubscribeCloudOrders();
         const tenantId = Number(activeTenantId);
-        unsubscribeCloudOrders = cloudDb.collection('orders').where('tenantId', '==', tenantId).onSnapshot(snapshot => {
+        const restaurantId = getCloudRestaurantId();
+        unsubscribeCloudOrders = cloudDb.collection('orders').where('restaurantId', '==', restaurantId).onSnapshot(snapshot => {
           snapshot.docChanges().forEach(change => {
             const order = { ...change.doc.data(), id: change.doc.id };
-            if (Number(order.tenantId) !== tenantId) return;
+            if (order.restaurantId !== restaurantId && Number(order.tenantId) !== tenantId) return;
             const existing = (kdsLiveOrders || []).find(o => o.id === order.id);
             if (change.type === 'added' && !existing) {
               kdsLiveOrders.unshift(order); saveOrdersToStorage();
               renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor();
-              if (isStaffAlarmScreen()) receiveIncomingOrderAlarm(order);
+              if (isStaffAlarmScreen() && (!order.status || order.status === 'received' || order.status === 'NEW')) receiveIncomingOrderAlarm(order);
             } else if (change.type === 'modified') {
               if (existing) Object.assign(existing, order); else kdsLiveOrders.unshift(order);
               saveOrdersToStorage(); renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor();
@@ -6983,7 +6989,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     function publishOrderToCloud(order) {
       if (!cloudDb || !order) return;
-      try { cloudDb.collection('orders').doc(String(order.id)).set({ ...order, tenantId: Number(order.tenantId || activeTenantId), syncedAt: Date.now() }, { merge: true }).catch(err => console.warn('Firebase publish error:', err)); }
+      try { cloudDb.collection('orders').doc(String(order.id)).set({ ...order, tenantId: Number(order.tenantId || activeTenantId), restaurantId: order.restaurantId || getCloudRestaurantId(), syncedAt: Date.now() }, { merge: true }).catch(err => console.warn('Firebase publish error:', err)); }
       catch (e) { console.warn('Firebase publish setup error:', e); }
     }
     function getStoredOrders() {
