@@ -1,0 +1,21 @@
+{
+  "name": "CRASH OS — إدارة المطاعم",
+  "short_name": "CRASH OS",
+  "description": "منصة إدارة المطاعم والطلبات والمنيو الذكي",
+  "start_url": "./index.html?menu=crash",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "./index.html?menu=crash",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

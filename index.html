@@ -711,7 +711,11 @@
   <link rel="manifest" id="dynamic-manifest" href="manifest.json">
   <link rel="apple-touch-icon" id="dynamic-apple-icon" href="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=512&q=80">
 </head>
-<body class="min-h-screen text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
+<!-- CRASH OS AUDIO ROUTING FIX: customer confirmation is silent; staff screens alarm -->
+  <!-- CRASH OS PAYMENT/TIME FIX: cash on delivery + restaurant-controlled estimates (minimum 59 minutes) -->
+  <!-- CRASH OS LINKS FIX: current-host URLs, safe unique slugs, and working open buttons -->
+  <!-- CRASH OS LOGO FIX: phone upload persists in local storage and renders in top-right avatar -->
+  <body class="min-h-screen text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
   <!-- TOP STICKY URGENT ALARM BANNER (Visible on all screens while alarming) -->
   <div id="top-urgent-alarm-bar" class="hidden fixed top-0 inset-x-0 z-[300] bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 text-white px-4 py-3 shadow-2xl flex flex-wrap items-center justify-between gap-3 border-b-2 border-white animate-pulse text-right">
     <div class="flex items-center gap-2.5">
@@ -1730,6 +1734,7 @@
             <div class="flex gap-2">
               <input type="text" id="customer-live-url-input" readonly class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono select-all outline-none">
               <button type="button" onclick="copyCustomerLiveURL()" class="px-3 py-1.5 gold-btn text-xs font-black rounded-xl">نسخ</button>
+              <button type="button" onclick="openCustomerLiveURL()" class="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold rounded-xl">فتح الرابط ↗</button>
               <button type="button" onclick="switchViewMode('CUSTOMER')" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow">تجربة كعميل 📱</button>
             </div>
           </div>
@@ -1743,6 +1748,7 @@
             <div class="flex gap-2">
               <input type="text" id="owner-live-url-input" readonly class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono select-all outline-none">
               <button type="button" onclick="copyOwnerLiveURL()" class="px-3 py-1.5 gold-btn text-xs font-black rounded-xl">نسخ</button>
+              <button type="button" onclick="openOwnerLiveURL()" class="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold rounded-xl">فتح الرابط ↗</button>
               <button type="button" onclick="switchViewMode('OWNER')" class="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow">دخول الكاشير 💻</button>
             </div>
           </div>
@@ -2999,10 +3005,13 @@
         <div class="pt-1.5 space-y-1">
           <label class="block text-[11px] font-bold text-slate-400">طرق الدفع الفوري والتحويل:</label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
-            <button type="button" onclick="openVodafoneCashModal()" class="py-2.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 font-black rounded-xl border border-rose-500/50 flex items-center justify-center gap-1 active:scale-95 transition cursor-pointer">
+            <button type="button" id="cust-pay-cash" onclick="setCustomerPayment('كاش عند الاستلام')" class="py-2.5 bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 font-black rounded-xl border border-emerald-500/50 flex items-center justify-center gap-1 active:scale-95 transition cursor-pointer ring-2 ring-emerald-400/70">
+              <span>💵 كاش عند الاستلام</span>
+            </button>
+            <button type="button" id="cust-pay-vodafone" onclick="setCustomerPayment('فودافون كاش'); openVodafoneCashModal()" class="py-2.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 font-black rounded-xl border border-rose-500/50 flex items-center justify-center gap-1 active:scale-95 transition cursor-pointer">
               <span>فودافون كاش 🔴</span>
             </button>
-            <button type="button" onclick="openInstaPayModal()" class="py-2.5 bg-purple-950/70 hover:bg-purple-900 text-purple-300 font-black rounded-xl border border-purple-500/50 flex items-center justify-center gap-1 active:scale-95 transition cursor-pointer">
+            <button type="button" id="cust-pay-insta" onclick="setCustomerPayment('إنستاباي'); openInstaPayModal()" class="py-2.5 bg-purple-950/70 hover:bg-purple-900 text-purple-300 font-black rounded-xl border border-purple-500/50 flex items-center justify-center gap-1 active:scale-95 transition cursor-pointer">
               <span>إنستاباي ⚡</span>
             </button>
             <button type="button" onclick="sendConfirmedOrderWhatsApp()" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl shadow flex items-center justify-center gap-1 active:scale-95 transition cursor-pointer">
@@ -3411,7 +3420,7 @@
         </div>
         <div>
           <label class="block font-bold text-slate-300 mb-1">الوقت التقديري</label>
-          <input type="text" id="zone-time-input" value="30 - 45 دقيقة" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white">
+          <input type="text" id="zone-time-input" value="59 - 60 دقيقة" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white">
         </div>
         <div class="pt-2 flex gap-2">
           <button type="button" onclick="closeModal('modal-add-zone')" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">إلغاء</button>
@@ -4365,18 +4374,51 @@
     }
 
     function getPublicBaseURL() {
+      const current = new URL(window.location.href);
+      current.search = '';
+      current.hash = '';
+      // When hosted on GitHub Pages/Manus, always use the actual page address.
+      // The old menu-almohandis.com placeholder caused dead restaurant links.
       let saved = SafeStorage.get('almohandis_public_domain');
-      if (saved && saved.trim()) {
-        let u = saved.trim();
-        if (!u.startsWith('http://') && !u.startsWith('https://')) u = 'https://' + u;
-        return u.endsWith('/') ? u : u + '/';
+      if (saved && saved.trim() && !/menu-almohandis\.com|example\.com/i.test(saved)) {
+        try {
+          const configured = new URL(saved.match(/^https?:\/\//i) ? saved : 'https://' + saved);
+          configured.search = ''; configured.hash = '';
+          return configured.toString().replace(/\/$/, '') + '/';
+        } catch (e) {}
       }
-      if (window.location.protocol.startsWith('http')) {
-        return window.location.href.split('?')[0].split('#')[0];
-      }
-      return 'https://menu-almohandis.com/';
+      let path = current.pathname;
+      // Static preview files must keep `/file.html`; `/file.html/` is a 404.
+      if (/\.html$/i.test(path) && !/\/index\.html$/i.test(path)) return current.origin + path;
+      path = path.replace(/index\.html$/i, '');
+      if (!path.endsWith('/')) path += '/';
+      return current.origin + path;
     }
-
+    function buildRestaurantURL(tenant, mode) {
+      const url = new URL(getPublicBaseURL());
+      url.search = '';
+      url.searchParams.set('menu', tenant?.slug || 'crash');
+      if (mode) url.searchParams.set('mode', mode);
+      return url.toString();
+    }
+    function normalizeTenantSlug(raw, name, id) {
+      const candidate = String(raw || '').trim().toLowerCase()
+        .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const base = candidate || ('restaurant-' + String(id || Date.now()).slice(-8));
+      let slug = base;
+      let n = 2;
+      while (tenants.some(t => String(t.slug || '').toLowerCase() === slug)) slug = base + '-' + n++;
+      return slug;
+    }
+    function openCustomerLiveURL() {
+      const inp = document.getElementById('customer-live-url-input');
+      if (inp?.value) window.open(inp.value, '_blank', 'noopener,noreferrer');
+    }
+    function openOwnerLiveURL() {
+      const inp = document.getElementById('owner-live-url-input');
+      if (inp?.value) window.open(inp.value, '_blank', 'noopener,noreferrer');
+    }
     function savePublicDomain(newDomain) {
       if (newDomain && newDomain.trim()) {
         SafeStorage.set('almohandis_public_domain', newDomain.trim());
@@ -4404,9 +4446,9 @@
         commReg: '38190',
         instapayHandle: 'crash.burger@instapay',
         deliveryZones: [
-          { id: 1, name: 'شارع الجامعة وحي الجامعة', fee: 15, minOrder: 100, estTime: '25-35 د' },
-          { id: 2, name: 'ميدان المسلة ومنطقة دلة', fee: 20, minOrder: 120, estTime: '35-45 د' },
-          { id: 3, name: 'قحافة والحواتم وأطراف الفيوم', fee: 25, minOrder: 150, estTime: '45-55 د' }
+          { id: 1, name: 'شارع الجامعة وحي الجامعة', fee: 15, minOrder: 100, estTime: '59 - 60 دقيقة' },
+          { id: 2, name: 'ميدان المسلة ومنطقة دلة', fee: 20, minOrder: 120, estTime: '59 - 60 دقيقة' },
+          { id: 3, name: 'قحافة والحواتم وأطراف الفيوم', fee: 25, minOrder: 150, estTime: '59 - 60 دقيقة' }
         ]
       },
       {
@@ -4426,8 +4468,8 @@
         commReg: '29104',
         instapayHandle: 'dose.cafe@instapay',
         deliveryZones: [
-          { id: 1, name: 'ميدان المسلة وسعد زغلول', fee: 15, minOrder: 80, estTime: '20-30 د' },
-          { id: 2, name: 'حي الجامعة ودلة', fee: 20, minOrder: 100, estTime: '30-40 د' }
+          { id: 1, name: 'ميدان المسلة وسعد زغلول', fee: 15, minOrder: 80, estTime: '59 - 60 دقيقة' },
+          { id: 2, name: 'حي الجامعة ودلة', fee: 20, minOrder: 100, estTime: '59 - 60 دقيقة' }
         ]
       },
       {
@@ -4447,8 +4489,8 @@
         commReg: '44102',
         instapayHandle: 'roma.pizza@instapay',
         deliveryZones: [
-          { id: 1, name: 'دلة ومستشفى الجامعة', fee: 15, minOrder: 120, estTime: '30-40 د' },
-          { id: 2, name: 'المسلة والحرية', fee: 20, minOrder: 140, estTime: '40-50 د' }
+          { id: 1, name: 'دلة ومستشفى الجامعة', fee: 15, minOrder: 120, estTime: '59 - 60 دقيقة' },
+          { id: 2, name: 'المسلة والحرية', fee: 20, minOrder: 140, estTime: '59 - 60 دقيقة' }
         ]
       },
       {
@@ -4468,8 +4510,8 @@
         commReg: '58120',
         instapayHandle: 'alrayan.shawarma@instapay',
         deliveryZones: [
-          { id: 1, name: 'شارع البحر والمحطة', fee: 15, minOrder: 90, estTime: '25-35 د' },
-          { id: 2, name: 'الجامعة والمسلة', fee: 20, minOrder: 120, estTime: '35-45 د' }
+          { id: 1, name: 'شارع البحر والمحطة', fee: 15, minOrder: 90, estTime: '59 - 60 دقيقة' },
+          { id: 2, name: 'الجامعة والمسلة', fee: 20, minOrder: 120, estTime: '59 - 60 دقيقة' }
         ]
       }
     ];
@@ -4482,7 +4524,12 @@
         if (Array.isArray(p) && p.length > 0) tenants = p;
       } catch (e) {}
     }
-
+    // Logo compatibility migration: older builds saved logoImage, while the top-right avatar reads avatarImage.
+    let logoFieldMigrated = false;
+    tenants.forEach(t => {
+      if (t && t.logoImage && !t.avatarImage) { t.avatarImage = t.logoImage; logoFieldMigrated = true; }
+    });
+    if (logoFieldMigrated) saveTenantsToStorage();
     let defaultMealsList = [
       {
         id: 101, tenantId: 1, name: 'كراش برجر دبل فحم', category: 'سندوتشات', price: 145, desc: 'شريحتين لحم بلدي بقري مشوي ع الفحم، شيدر نيوزيلندي ذائبة، خيار مخلل، وصوص كراش السري في خبز بريوش فاخر.', icon: '🍔', badge: 'الأكثر طلباً ⭐', inStock: true,
@@ -4572,6 +4619,7 @@
 
     let posCart = [];
     let posPaymentMethod = 'كاش';
+      let customerPaymentMethod = 'كاش عند الاستلام';
     let posCustomDiscount = 0;
 
     let shiftData = {
@@ -4666,6 +4714,10 @@ window.addEventListener('DOMContentLoaded', () => {
           if (matched) {
             activeTenantId = matched.id;
             activeTenant = matched;
+            // Apply the routed tenant after menu= or restaurant= URLs.
+            applyActiveTenant();
+            applyActiveCustomization();
+            updateDynamicPWAManifest();
           }
         }
 
@@ -4931,6 +4983,8 @@ window.addEventListener('DOMContentLoaded', () => {
       renderRestaurantAdminOrdersMonitor();
       renderDeliveryZones();
       renderCustomerMenu();
+      // Refresh the customer identity card after tenant routing; otherwise the default Crash text can remain visible.
+      if (typeof updateCustomerMenuBranding === 'function') updateCustomerMenuBranding();
       if (typeof renderRestaurantOwnerLightingModes === 'function') renderRestaurantOwnerLightingModes();
       if (typeof syncStudioInputs === 'function') syncStudioInputs(getTenantCustomSettings(activeTenantId));
       if (typeof updateCustomerClassicButtonUI === 'function') updateCustomerClassicButtonUI();
@@ -4939,8 +4993,8 @@ window.addEventListener('DOMContentLoaded', () => {
     function updateLiveLinksInputs() {
       const base = getPublicBaseURL();
       const slug = activeTenant ? activeTenant.slug : 'crash';
-      const custUrl = base + '?r=' + slug;
-      const ownerUrl = base + '?r=' + slug + '&mode=owner';
+      const custUrl = buildRestaurantURL(activeTenant, '');
+      const ownerUrl = buildRestaurantURL(activeTenant, 'owner');
 
       const custInput = document.getElementById('customer-live-url-input');
       const ownerInput = document.getElementById('owner-live-url-input');
@@ -5070,13 +5124,14 @@ window.addEventListener('DOMContentLoaded', () => {
     function submitNewTenant(e) {
       e.preventDefault();
       const name = document.getElementById('tenant-name-input').value.trim();
-      const slug = document.getElementById('tenant-slug-input').value.trim();
+      const rawSlug = document.getElementById('tenant-slug-input').value.trim();
       const branch = document.getElementById('tenant-branch-input').value.trim() || 'الفرع الرئيسي';
       const plan = document.getElementById('tenant-plan-input').value;
       const price = parseInt(document.getElementById('tenant-price-input').value) || 750;
       const phone = document.getElementById('tenant-phone-input').value.trim();
 
       const newId = Date.now();
+      const slug = normalizeTenantSlug(rawSlug, name, newId);
       const newT = {
         id: newId,
         name: name,
@@ -5093,7 +5148,7 @@ window.addEventListener('DOMContentLoaded', () => {
         commReg: '---',
         instapayHandle: slug + '@instapay',
         deliveryZones: [
-          { id: 1, name: 'المنطقة المحيطة بالفرع', fee: 15, minOrder: 100, estTime: '30 دقيقة' }
+          { id: 1, name: 'المنطقة المحيطة بالفرع', fee: 15, minOrder: 100, estTime: '59 - 60 دقيقة' }
         ]
       };
 
@@ -5114,6 +5169,8 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       populateTenantSelector();
+      changeActiveTenant(newId);
+      updateLiveLinksInputs();
       renderTenantsTable();
       closeModal('modal-add-tenant');
       directAccessTenant(newId);
@@ -5363,7 +5420,8 @@ window.addEventListener('DOMContentLoaded', () => {
       (activeTenant.deliveryZones || []).forEach(z => {
         const opt = document.createElement('option');
         opt.value = z.fee;
-        opt.innerText = z.name + ' (+' + z.fee + ' ج.م شحن)';
+        opt.dataset.estTime = normalizeRestaurantEstimate(z.estTime);
+        opt.innerText = z.name + ' (+' + z.fee + ' ج.م • ' + opt.dataset.estTime + ')';
         sel.appendChild(opt);
       });
     }
@@ -6009,7 +6067,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (document.getElementById('receipt-tafqeet')) document.getElementById('receipt-tafqeet').innerText = tafqeetStr;
 
         // 6. Payment method & Cash tendered
-        const payMethod = isCustomer ? 'إلكتروني / إنستاباي' : (posPaymentMethod || 'كاش');
+        const payMethod = isCustomer ? (customerPaymentMethod || 'كاش عند الاستلام') : (posPaymentMethod || 'كاش');
         if (document.getElementById('receipt-payment')) document.getElementById('receipt-payment').innerText = payMethod;
 
         let tendered = grand;
@@ -6255,37 +6313,29 @@ window.addEventListener('DOMContentLoaded', () => {
       } catch(e) {}
     }
 
-    // START CONTINUOUS PERSISTENT ALARM (KITCHEN & CASHIER & OWNER ONLY)
+    // START CONTINUOUS PERSISTENT ALARM (STAFF, CASHIER, KITCHEN & OWNER ONLY)
     let currentActiveTab = 'customer-menu';
     let pendingUnacknowledgedOrder = null;
-
+    function isStaffAlarmScreen() {
+      // Customer menu never plays the staff siren or opens the emergency modal.
+      return currentActiveTab !== 'customer-menu' &&
+        (typeof currentMode !== 'string' || currentMode !== 'CUSTOMER');
+    }
     function startContinuousOrderAlarm(order) {
       if (!order) order = { id: 'ORD-' + Math.floor(1000 + Math.random() * 9000), total: 255, type: 'طلب صالة', customer: 'عميل بالصالة' };
+      // Publish to the other open POS/KDS/owner tabs first.
+      try { SafeStorage.set('almohandis_latest_incoming_order', JSON.stringify({ order: order, timestamp: Date.now() })); } catch(e) {}
+      if (typeof otaSyncChannel !== 'undefined' && otaSyncChannel) {
+        try { otaSyncChannel.postMessage({ type: 'URGENT_ORDER_ALARM_START', order: order }); } catch(e) {}
+      }
+      // Never start the staff alarm in the customer tab itself.
+      if (!isStaffAlarmScreen()) return;
       currentAlarmingOrderId = order.id;
       pendingUnacknowledgedOrder = order;
-
-      // Broadcast to all other open tabs (Kitchen KDS, POS, Owner)
-      try {
-        SafeStorage.set('almohandis_latest_incoming_order', JSON.stringify({ order: order, timestamp: Date.now() }));
-      } catch(e) {}
-
-      if (typeof otaSyncChannel !== 'undefined' && otaSyncChannel) {
-        try {
-          otaSyncChannel.postMessage({
-            type: 'URGENT_ORDER_ALARM_START',
-            order: order
-          });
-        } catch(e) {}
-      }
-
-      // CRITICAL: NEVER display emergency siren or red banner to the CUSTOMER!
-      // Sound always for feedback
-      triggerStaffKitchenAlarmUI(order);
-
       triggerStaffKitchenAlarmUI(order);
     }
-
     function triggerStaffKitchenAlarmUI(order) {
+      if (!isStaffAlarmScreen()) return;
       if (!order) order = pendingUnacknowledgedOrder;
       if (!order) return;
 
@@ -6612,7 +6662,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <td class="p-3.5 font-bold text-white">${z.name}</td>
           <td class="p-3.5 font-black text-amber-400 font-mono">${z.fee} ج.م</td>
           <td class="p-3.5 font-mono text-slate-300">${z.minOrder} ج.م</td>
-          <td class="p-3.5 text-slate-400">${z.estTime || '30-40 د'}</td>
+          <td class="p-3.5 text-slate-400">${normalizeRestaurantEstimate(z.estTime)}</td>
           <td class="p-3.5 text-center">
             <button onclick="deleteDeliveryZone(${idx})" class="p-1.5 bg-rose-900/40 hover:bg-rose-800 text-rose-300 rounded-lg text-xs">
               🗑️ حذف
@@ -6629,7 +6679,11 @@ window.addEventListener('DOMContentLoaded', () => {
       const fee = parseInt(document.getElementById('zone-fee-input').value) || 15;
       const min = parseInt(document.getElementById('zone-min-input').value) || 100;
       const time = document.getElementById('zone-time-input').value.trim();
-
+      const estimateNums = (time.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+      if (!estimateNums.length || estimateNums.some(n => n < 59)) {
+        showToast('الحد الأدنى للوقت المتوقع هو 59 دقيقة. أدخل مدة المطعم مثل 59 - 60 دقيقة أو أكثر.', '⚠️');
+        return;
+      }
       if (!activeTenant.deliveryZones) activeTenant.deliveryZones = [];
       activeTenant.deliveryZones.push({ id: Date.now(), name, fee, minOrder: min, estTime: time });
       renderDeliveryZones();
@@ -6902,9 +6956,23 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // CONFIRM CUSTOMER ORDER: PUSHES TO KITCHEN, CASHIER, OWNER & OPENS LIVE TRACKER
+    function setCustomerPayment(method) {
+      customerPaymentMethod = method || 'كاش عند الاستلام';
+      ['cash', 'insta', 'vodafone'].forEach(key => {
+        const el = document.getElementById('cust-pay-' + key);
+        if (el) el.classList.toggle('ring-2', (key === 'cash' && customerPaymentMethod === 'كاش عند الاستلام') || (key === 'insta' && customerPaymentMethod === 'إنستاباي') || (key === 'vodafone' && customerPaymentMethod === 'فودافون كاش'));
+      });
+    }
+    function normalizeRestaurantEstimate(value) {
+      const raw = String(value || '').trim();
+      const nums = (raw.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+      if (!nums.length || nums.some(n => n < 59)) return '59 - 60 دقيقة';
+      return raw;
+    }
+
     function confirmCustomerOrderSubmission() {
       try {
-        playSingleGentleTone();
+        // Customer confirmation is intentionally silent; staff alerts are routed to management screens only.
 
         // 1. Check if cart is empty
         if (!customerCart || customerCart.length === 0) {
@@ -6929,7 +6997,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const disc = Number(customerDiscount) || 0;
         const grandTotal = Math.max(0, subtotal + delivFee - disc);
-
+        const selectedZone = document.getElementById('cust-deliv-zone')?.selectedOptions?.[0];
+        const estimatedTime = normalizeRestaurantEstimate(selectedZone?.dataset?.estTime || activeTenant?.defaultEstTime || '59 - 60 دقيقة');
         const orderNum = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
         const timeStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
 
@@ -6961,6 +7030,8 @@ window.addEventListener('DOMContentLoaded', () => {
           delivFee: delivFee,
           discount: disc,
           total: grandTotal,
+          paymentMethod: customerPaymentMethod || 'كاش عند الاستلام',
+          estimatedTime,
           createdAt: Date.now()
         };
 
@@ -7010,12 +7081,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
         // 9. Open Live Order Tracker for Customer
         openLiveOrderTracker(newOrder);
-
-        // 10. Sound alarms for kitchen/cashier/staff
+        // Notify management screens only. The customer page remains silent.
         startContinuousOrderAlarm(newOrder);
-
         showToast(`🎉 تم تأكيد طلبك #${newOrder.id}! ووصل فوراً للمطبخ والكاشير والإدارة 🍳🛵`, '✅');
-        playSuccessChime();
       } catch (err) {
         console.error('confirmCustomerOrderSubmission error:', err);
         try { closeModal('modal-customer-cart'); } catch(e) {}
@@ -7184,7 +7252,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'almohandis_incoming_order_broadcast' && e.newValue) {
           try {
             const data = JSON.parse(e.newValue);
-            if (data && data.order && currentActiveTab !== 'customer-menu') {
+            if (data && data.order && isStaffAlarmScreen()) {
               startContinuousOrderAlarm(data.order);
             }
           } catch(err) {}
@@ -7194,7 +7262,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function openLiveOrderTracker(order) {
       try {
-        playUniversalSoftClick();
+        // Customer tracker opens silently; staff alarms are separate.
         const ord = order || activeCustomerLiveOrder;
         if (!ord) {
           showToast('لا يوجد طلب نشط حالياً لتتبعه!', 'ℹ️');
@@ -8988,7 +9056,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function shareCustomerMenuLink() {
-      const url = getPublicBaseURL() + '?menu=' + (activeTenant ? activeTenant.slug : 'crash');
+      const url = buildRestaurantURL(activeTenant, '');
       const text = `تفضل بمشاهدة منيو وتجربة الطلب من ${activeTenant.name}: ${url}`;
       const waUrl = 'https://wa.me/?text=' + encodeURIComponent(text);
       window.open(waUrl, '_blank');
@@ -9218,7 +9286,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateAllTenantAvatars() {
-      const avatarImg = activeTenant.avatarImage;
+      const cfgLogo = getTenantCustomSettings(activeTenantId);
+      const avatarImg = activeTenant.avatarImage || activeTenant.logoImage || (cfgLogo && cfgLogo.logoImage);
       const avatarLetter = activeTenant.avatar || (activeTenant.name ? activeTenant.name.charAt(0) : 'C');
 
       const avatarTargets = ['customer-avatar', 'cust-hdr-avatar', 'current-restaurant-avatar', 'top-brand-avatar', 'studio-logo-preview'];
@@ -9911,10 +9980,11 @@ window.addEventListener('DOMContentLoaded', () => {
       compressImageFile(file, 300, 300, 0.70, function(dataUrl) {
         const tenant = tenants.find(t => t.id === activeTenantId);
         if (tenant) {
+          // Store in both fields for compatibility with existing saved tenants and all avatar surfaces.
           tenant.logoImage = dataUrl;
+          tenant.avatarImage = dataUrl;
           saveTenantsToStorage();
         }
-
         const cfg = getTenantCustomSettings(activeTenantId);
         cfg.logoImage = dataUrl;
         saveTenantCustomSettings(activeTenantId, cfg);
@@ -9932,6 +10002,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const tenant = tenants.find(t => t.id === activeTenantId);
       if (tenant) {
         delete tenant.logoImage;
+        delete tenant.avatarImage;
         saveTenantsToStorage();
       }
       const cfg = getTenantCustomSettings(activeTenantId);
@@ -10160,7 +10231,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const avatarSpan = document.getElementById('cust-menu-logo-avatar');
       const logoImg = document.getElementById('cust-menu-logo-img');
       const studioLogoPrev = document.getElementById('studio-logo-preview');
-      const logoSrc = (cfg && cfg.logoImage) || (tenant && tenant.logoImage);
+      const logoSrc = (cfg && cfg.logoImage) || (tenant && (tenant.logoImage || tenant.avatarImage));
 
       if (logoSrc) {
         if (logoImg) {
@@ -10961,7 +11032,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const cfg = getTenantCustomSettings(tId);
       const ownerPin = t.ownerPin || cfg.ownerPin || '00000000';
       const staffPin = t.staffPin || cfg.staffPin || '00000000';
-      const url = getPublicBaseURL() + '?r=' + (t.slug || 'crash');
+      const url = buildRestaurantURL(t, '');
 
       const msg = `🏪 بيانات تسجيل الدخول الخاصة بـ ${t.name}:
 🌐 رابط المنيو المباشر:
@@ -11437,8 +11508,8 @@ ${staffPin}
       if (badgeEl) badgeEl.innerText = `المرحلة ${step} من 4`;
 
       const stages = {
-        1: { icon: '📥', title: 'تم استلام وتأكيد طلبك ⏳', desc: 'تم استلام طلبك ومراجعته في نظام المطعم بنجاح.', time: '20 - 25 دقيقة' },
-        2: { icon: '👨‍🍳🔥', title: 'الشيف يجهز وجبتك بالمطبخ الآن 🍳', desc: 'جاري الطهي والشواء لتصلك الوجبة طازجة وساخنة.', time: '15 - 20 دقيقة' },
+        1: { icon: '📥', title: 'تم استلام وتأكيد طلبك ⏳', desc: 'تم استلام طلبك ومراجعته في نظام المطعم بنجاح.', time: normalizeRestaurantEstimate(ord.estimatedTime || activeTenant?.defaultEstTime) },
+        2: { icon: '👨‍🍳🔥', title: 'الشيف يجهز وجبتك بالمطبخ الآن 🍳', desc: 'جاري الطهي والشواء لتصلك الوجبة طازجة وساخنة.', time: normalizeRestaurantEstimate(ord.estimatedTime || activeTenant?.defaultEstTime) },
         3: { icon: '🛵💨', title: 'وجبتك جاهزة وانطلقت مع الطيار! 🔔', desc: 'الوجبة جاهزة وهي في الطريق إليك بأقصى سرعة.', time: '5 - 10 دقائق' },
         4: { icon: '🎉🍽️', title: 'تم التسليم بنجاح! بالهناء والشفاء 🎉', desc: 'نتمنى لك وجبة شهية وتجربة استثنائية معنا دائماً.', time: 'تم التوصيل' }
       };
@@ -11608,7 +11679,7 @@ ${staffPin}
         <div class="pt-2 flex justify-center items-center gap-2">
           <span class="px-3 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 font-mono">
             <span>⏱️ الوقت المتوقع:</span>
-            <span id="tracker-estimated-time">15 - 20 دقيقة</span>
+            <span id="tracker-estimated-time">59 - 60 دقيقة</span>
           </span>
         </div>
       </div>
