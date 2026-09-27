@@ -4977,7 +4977,7 @@ window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('customer-restaurant-title').innerText = activeTenant.name;
       document.getElementById('customer-restaurant-desc').innerText = activeTenant.branch;
       updateAllTenantAvatars();
-      if (cloudDb) listenToCloudOrders();
+      if (cloudDb) { listenToCloudOrders(); loadTenantBrandingFromCloud(); }
       document.getElementById('links-restaurant-name').innerText = activeTenant.name;
 
       updateLiveLinksInputs();
@@ -6955,7 +6955,7 @@ window.addEventListener('DOMContentLoaded', () => {
       try {
         if (typeof firebase === 'undefined' || !firebase.firestore) return;
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        cloudDb = firebase.firestore(); isCloudConnected = true; listenToCloudOrders();
+        cloudDb = firebase.firestore(); isCloudConnected = true; listenToCloudOrders(); loadTenantBrandingFromCloud();
         const badge = document.getElementById('hdr-cloud-badge'); if (badge) badge.textContent = '☁️ سحابي متصل ✓';
       } catch (e) { isCloudConnected = false; console.warn('Firebase cloud fallback:', e); }
     }
@@ -6991,6 +6991,22 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!cloudDb || !order) return;
       try { cloudDb.collection('orders').doc(String(order.id)).set({ ...order, tenantId: Number(order.tenantId || activeTenantId), restaurantId: order.restaurantId || getCloudRestaurantId(), syncedAt: Date.now() }, { merge: true }).catch(err => console.warn('Firebase publish error:', err)); }
       catch (e) { console.warn('Firebase publish setup error:', e); }
+    }
+    function loadTenantBrandingFromCloud() {
+      if (!cloudDb) return;
+      cloudDb.collection('restaurants').doc(getCloudRestaurantId()).get().then(doc => {
+        const data = doc.exists ? doc.data() : null;
+        const logo = data && (data.logoImage || data.avatarImage || data.logoUrl);
+        if (!logo) return;
+        const tenant = tenants.find(t => t.id === activeTenantId);
+        if (tenant) { tenant.logoImage = logo; tenant.avatarImage = logo; saveTenantsToStorage(); }
+        const cfg = getTenantCustomSettings(activeTenantId); cfg.logoImage = logo; saveTenantCustomSettings(activeTenantId, cfg);
+        updateAllTenantAvatars(); updateCustomerMenuBranding();
+      }).catch(err => console.warn('Firebase branding read error:', err));
+    }
+    function publishTenantBrandingToCloud(logo) {
+      if (!cloudDb || !logo) return;
+      cloudDb.collection('restaurants').doc(getCloudRestaurantId()).set({ logoImage: logo, avatarImage: logo, updatedAt: Date.now() }, { merge: true }).catch(err => console.warn('Firebase branding publish error:', err));
     }
     function getStoredOrders() {
       try {
@@ -10079,6 +10095,7 @@ window.addEventListener('DOMContentLoaded', () => {
           tenant.logoImage = dataUrl;
           tenant.avatarImage = dataUrl;
           saveTenantsToStorage();
+          publishTenantBrandingToCloud(dataUrl);
         }
         const cfg = getTenantCustomSettings(activeTenantId);
         cfg.logoImage = dataUrl;
