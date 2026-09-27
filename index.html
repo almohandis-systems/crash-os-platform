@@ -4677,6 +4677,8 @@ window.addEventListener('DOMContentLoaded', () => {
       renderShiftSummary();
       if (typeof renderPlatformThemePackagesUI === 'function') renderPlatformThemePackagesUI();
       resolveURLRouting();
+      // Recover a recent unacknowledged order when the cashier/kitchen/owner opens after submission.
+      setTimeout(restorePendingIncomingOrderAlarm, 120);
     });
 
     function resolveURLRouting() {
@@ -6357,10 +6359,24 @@ window.addEventListener('DOMContentLoaded', () => {
       triggerStaffKitchenAlarmUI(order);
     }
     function receiveIncomingOrderAlarm(order) {
-      if (!order || !isStaffAlarmScreen()) return;
+      if (!order) return;
       currentAlarmingOrderId = order.id;
       pendingUnacknowledgedOrder = order;
-      triggerStaffKitchenAlarmUI(order);
+      if (isStaffAlarmScreen()) triggerStaffKitchenAlarmUI(order);
+    }
+    function restorePendingIncomingOrderAlarm() {
+      try {
+        const raw = SafeStorage.get('almohandis_latest_incoming_order') || SafeStorage.get('almohandis_incoming_order_broadcast');
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        const order = data && data.order;
+        const age = Date.now() - Number(data && data.timestamp || 0);
+        if (!order || age < 0 || age > 15 * 60 * 1000) return;
+        if (order.tenantId && Number(order.tenantId) !== Number(activeTenantId)) return;
+        const saved = (typeof kdsLiveOrders !== 'undefined' && kdsLiveOrders || []).find(o => o.id === order.id);
+        if (saved && saved.status && saved.status !== 'received') return;
+        receiveIncomingOrderAlarm(order);
+      } catch (e) {}
     }
     function triggerStaffKitchenAlarmUI(order) {
       if (!isStaffAlarmScreen()) return;
