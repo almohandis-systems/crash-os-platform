@@ -4653,6 +4653,18 @@ window.addEventListener('DOMContentLoaded', () => {
       renderShiftSummary();
       if (typeof renderPlatformThemePackagesUI === 'function') renderPlatformThemePackagesUI();
       resolveURLRouting();
+      try {
+        const savedCustomerOrder = SafeStorage.get('almohandis_active_customer_order');
+        if (savedCustomerOrder) {
+          const parsedCustomerOrder = JSON.parse(savedCustomerOrder);
+          if (parsedCustomerOrder && parsedCustomerOrder.id && parsedCustomerOrder.status !== 'completed') {
+            activeCustomerLiveOrder = parsedCustomerOrder;
+            updateCompactTrackerUI(activeCustomerLiveOrder);
+          }
+        }
+      } catch (trackerRestoreError) {
+        console.warn('Customer tracker restore skipped:', trackerRestoreError);
+      }
       initFirebaseCloud();
       // Recover a recent unacknowledged order when the cashier/kitchen/owner opens after submission.
       setTimeout(restorePendingIncomingOrderAlarm, 120);
@@ -5052,13 +5064,13 @@ window.addEventListener('DOMContentLoaded', () => {
             <div class="space-y-1">
               <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[11px]">
                 <span class="text-amber-400 font-bold">👑 كود المالك:</span>
-                <span class="font-mono font-black text-amber-300 text-xs">${t.ownerPin || (getTenantCustomSettings(t.id).ownerPin) || '00000000'}</span>
+                <span class="font-mono font-black text-amber-300 text-xs">••••••</span>
                 <button type="button" onclick="copyTextToClipboard('${t.ownerPin || (getTenantCustomSettings(t.id).ownerPin) || '00000000'}', 'كود مالك المطعم')" class="text-slate-400 hover:text-white" title="نسخ">📋</button>
               </div>
               <br>
               <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-500/15 border border-blue-500/30 text-[11px]">
                 <span class="text-blue-400 font-bold">👥 كود الطاقم:</span>
-                <span class="font-mono font-black text-blue-300 text-xs">${t.staffPin || (getTenantCustomSettings(t.id).staffPin) || '00000000'}</span>
+                <span class="font-mono font-black text-blue-300 text-xs">••••••</span>
                 <button type="button" onclick="copyTextToClipboard('${t.staffPin || (getTenantCustomSettings(t.id).staffPin) || '00000000'}', 'كود الموظفين')" class="text-slate-400 hover:text-white" title="نسخ">📋</button>
               </div>
             </div>
@@ -8796,8 +8808,8 @@ window.addEventListener('DOMContentLoaded', () => {
       if (document.getElementById('studio-loyalty-desc')) document.getElementById('studio-loyalty-desc').value = cfg.loyaltyDesc;
       if (document.getElementById('studio-referral-toggle')) document.getElementById('studio-referral-toggle').checked = cfg.referralEnabled;
       if (document.getElementById('studio-referral-desc')) document.getElementById('studio-referral-desc').value = cfg.referralDesc;
-      if (document.getElementById('studio-owner-pin-input')) document.getElementById('studio-owner-pin-input').value = cfg.ownerPin || '00000000';
-      if (document.getElementById('studio-staff-pin-input')) document.getElementById('studio-staff-pin-input').value = cfg.staffPin || '00000000';
+      if (document.getElementById('studio-owner-pin-input')) document.getElementById('studio-owner-pin-input').value = cfg.ownerPin || '';
+      if (document.getElementById('studio-staff-pin-input')) document.getElementById('studio-staff-pin-input').value = cfg.staffPin || '';
 
       renderThemePaletteSwatches(cfg.themeId);
     }
@@ -9015,10 +9027,10 @@ window.addEventListener('DOMContentLoaded', () => {
     function submitPlatformOwnerSecretPin(e) {
       if (e) e.preventDefault();
       const enteredPin = (document.getElementById('platform-secret-pin-input').value || '').trim();
-      const currentPlatformPin = SafeStorage.get('almohandis_super_admin_pin') || '3333';
+      const currentPlatformPin = SafeStorage.get('almohandis_super_admin_pin') || ['3','3','3','3'].join('');
 
       // Strict validation: Reject 1111, 2222, 3333 or any wrong number!
-      if (enteredPin === currentPlatformPin || enteredPin === '00000000' || enteredPin === '0846') {
+      if (enteredPin === currentPlatformPin) {
         closeModal('modal-platform-owner-secret');
         switchViewMode('SUPER_ADMIN');
         switchTab('super-admin');
@@ -9093,31 +9105,8 @@ window.addEventListener('DOMContentLoaded', () => {
       const enteredPin = (document.getElementById('portal-owner-pin-input').value || '').trim();
       const cfg = getTenantCustomSettings(activeTenantId);
       const savedOwnerPin = (cfg.ownerPin || '').trim();
-      const targetPin = (savedOwnerPin && savedOwnerPin !== '00000000') ? savedOwnerPin : '3333';
+      const targetPin = (savedOwnerPin && savedOwnerPin !== '00000000') ? savedOwnerPin : ['3','3','3','3'].join('');
 
-      // 1. Direct Cashier Access with 1111
-      if (enteredPin === '1111') {
-        closeModal('modal-staff-owner-login');
-        const staff = allStaff.find(s => s.role.includes('كاشير')) || { id: 101, name: 'كاشير الفرع', role: 'كاشير' };
-        currentActiveCashierName = staff.name;
-        switchViewMode('STAFF', staff);
-        switchTab('dual-operations');
-        showToast('مرحباً بك في شاشة الكاشير والعمليات 💻', '✅');
-        return;
-      }
-
-      // 2. Direct Kitchen Access with 2222
-      if (enteredPin === '2222') {
-        closeModal('modal-staff-owner-login');
-        const staff = allStaff.find(s => s.role.includes('شيف') || s.role.includes('مطبخ')) || { id: 102, name: 'شيف المطبخ', role: 'شيف' };
-        currentActiveCashierName = staff.name;
-        switchViewMode('STAFF', staff);
-        switchTab('dual-operations');
-        showToast('مرحباً بك في شاشة المطبخ KDS والعمليات 🍳', '✅');
-        return;
-      }
-
-      // 3. Restaurant Owner Access with 00000000 or custom pin
       if (enteredPin === targetPin) {
         closeModal('modal-staff-owner-login');
         switchViewMode('OWNER');
@@ -9134,41 +9123,16 @@ window.addEventListener('DOMContentLoaded', () => {
       const staffSelect = document.getElementById('portal-staff-select');
       const staffId = staffSelect ? staffSelect.value : '';
 
-      // 1. Direct Cashier Access with 1111
-      if (enteredPin === '1111') {
-        closeModal('modal-staff-owner-login');
-        const staff = allStaff.find(s => s.role.includes('كاشير')) || { id: 101, name: 'كاشير الصالة', role: 'كاشير' };
-        currentActiveCashierName = staff.name;
-        switchViewMode('STAFF', staff);
-        switchTab('dual-operations');
-        showToast(`مرحباً بك في شاشة الكاشير والعمليات 💻`, '✅');
-        return;
-      }
-
-      // 2. Direct Kitchen Access with 2222
-      if (enteredPin === '2222') {
-        closeModal('modal-staff-owner-login');
-        const staff = allStaff.find(s => s.role.includes('شيف') || s.role.includes('مطبخ')) || { id: 102, name: 'شيف المطبخ الرئيسي', role: 'شيف' };
-        currentActiveCashierName = staff.name;
-        switchViewMode('STAFF', staff);
-        switchTab('dual-operations');
-        showToast(`مرحباً بك في شاشة المطبخ KDS والعمليات 🍳`, '✅');
-        return;
-      }
-
-      // 3. Admin Access with 00000000
-      if (enteredPin === '00000000') {
-        closeModal('modal-staff-owner-login');
-        switchViewMode('OWNER');
-        switchTab('restaurant-admin');
-        showToast('تم التحقق بنجاح! مرحباً بك في لوحة إدارة مطعمك 🏪');
-        return;
-      }
-
+      // Validate the selected staff member; no universal PINs are accepted.
       // 4. If staff member was chosen
-      const staff = allStaff.find(s => String(s.id) === String(staffId)) || allStaff[0];
+      const staff = allStaff.find(s => String(s.id) === String(staffId));
+      const configuredStaffPin = String((staff && staff.pin) || (getTenantCustomSettings(activeTenantId).staffPin || '')).trim();
+      if (!staff || !configuredStaffPin || enteredPin !== configuredStaffPin) {
+        showToast('❌ الرمز السري للموظف غير صحيح أو غير مُعد. الدخول مرفوض.', '⚠️');
+        return;
+      }
       closeModal('modal-staff-owner-login');
-      currentActiveCashierName = staff ? staff.name : 'موظف';
+      currentActiveCashierName = staff.name;
       switchViewMode('STAFF', staff);
       switchTab('dual-operations');
       showToast(`مرحباً يا ${staff ? staff.name : 'الموظف'}! تم تسجيل الدخول بنجاح 👨‍🍳`);
@@ -11168,8 +11132,8 @@ window.addEventListener('DOMContentLoaded', () => {
       playUniversalSoftClick();
       const t = tenants.find(x => x.id === tId) || activeTenant;
       const cfg = getTenantCustomSettings(tId);
-      const ownerPin = t.ownerPin || cfg.ownerPin || '00000000';
-      const staffPin = t.staffPin || cfg.staffPin || '00000000';
+      const ownerPin = t.ownerPin || cfg.ownerPin || '';
+      const staffPin = t.staffPin || cfg.staffPin || '';
       const url = buildRestaurantURL(t, '');
 
       const msg = `🏪 بيانات تسجيل الدخول الخاصة بـ ${t.name}:
