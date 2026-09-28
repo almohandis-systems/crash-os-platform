@@ -6317,9 +6317,8 @@ window.addEventListener('DOMContentLoaded', () => {
     let currentActiveTab = 'customer-menu';
     let pendingUnacknowledgedOrder = null;
     function isStaffAlarmScreen() {
-      // Customer menu never plays the staff siren or opens the emergency modal.
-      return currentActiveTab !== 'customer-menu' &&
-        (typeof currentMode !== 'string' || currentMode !== 'CUSTOMER');
+      // Alerts belong only to restaurant operations. The platform-owner dashboard is intentionally silent.
+      return (currentMode === 'OWNER' || currentMode === 'STAFF') && currentActiveTab !== 'customer-menu';
     }
     function startContinuousOrderAlarm(order) {
       if (!order) order = { id: 'ORD-' + Math.floor(1000 + Math.random() * 9000), total: 255, type: 'طلب صالة', customer: 'عميل بالصالة' };
