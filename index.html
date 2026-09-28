@@ -4859,6 +4859,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
       currentActiveTab = viewId;
+      if (viewId !== 'customer-menu') setTimeout(scanCloudForPendingAlarms, 250);
 
       // When viewing customer menu, hide the management top header (clock, tenant switcher, tabs)
       const mainHdr = document.getElementById('main-app-header');
@@ -6961,6 +6962,18 @@ window.addEventListener('DOMContentLoaded', () => {
           });
         }, err => console.warn('Firebase realtime listener error:', err));
       } catch (e) { console.warn('Firebase realtime setup error:', e); }
+    }
+    function scanCloudForPendingAlarms() {
+      if (!cloudDb || !isStaffAlarmScreen()) return;
+      cloudDb.collection('orders').where('tenantId', '==', Number(activeTenantId)).get().then(snapshot => {
+        const now = Date.now();
+        const pending = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(order => {
+          const status = String(order.status || '').toLowerCase();
+          const created = Number(order.createdAt || 0);
+          return ['received','new','pending'].includes(status) && (!created || now - created < 30 * 60 * 1000);
+        }).sort((a,b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+        if (pending[0]) receiveIncomingOrderAlarm(pending[0]);
+      }).catch(err => console.warn('Firebase pending alarm scan error:', err));
     }
     function publishOrderToCloud(order) {
       if (!cloudDb || !order) return;
