@@ -6938,7 +6938,9 @@ window.addEventListener('DOMContentLoaded', () => {
         if (unsubscribeCloudOrders) unsubscribeCloudOrders();
         const tenantId = Number(activeTenantId);
         const restaurantId = getCloudRestaurantId();
-        unsubscribeCloudOrders = cloudDb.collection('orders').where('restaurantId', '==', restaurantId).onSnapshot(snapshot => {
+        // Cross-device source of truth: tenantId exists on legacy and new orders.
+        // BroadcastChannel/localStorage only cover tabs on the same browser/device.
+        unsubscribeCloudOrders = cloudDb.collection('orders').where('tenantId', '==', tenantId).onSnapshot(snapshot => {
           snapshot.docChanges().forEach(change => {
             const order = { ...change.doc.data(), id: change.doc.id };
             if (order.restaurantId !== restaurantId && Number(order.tenantId) !== tenantId) return;
@@ -6958,7 +6960,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     function publishOrderToCloud(order) {
       if (!cloudDb || !order) return;
-      try { cloudDb.collection('orders').doc(String(order.id)).set({ ...order, tenantId: Number(order.tenantId || activeTenantId), restaurantId: order.restaurantId || getCloudRestaurantId(), syncedAt: Date.now() }, { merge: true }).catch(err => console.warn('Firebase publish error:', err)); }
+      try { cloudDb.collection('orders').doc(String(order.id)).set({ ...order, tenantId: Number(activeTenantId), restaurantId: getCloudRestaurantId(), syncedAt: Date.now() }, { merge: true }).catch(err => console.warn('Firebase publish error:', err)); }
       catch (e) { console.warn('Firebase publish setup error:', e); }
     }
     function loadTenantBrandingFromCloud() {
@@ -7110,6 +7112,7 @@ window.addEventListener('DOMContentLoaded', () => {
           discount: disc,
           total: grandTotal,
           paymentMethod: customerPaymentMethod || 'كاش عند الاستلام',
+          restaurantId: getCloudRestaurantId(),
           estimatedTime,
           createdAt: Date.now()
         };
