@@ -6945,14 +6945,18 @@ window.addEventListener('DOMContentLoaded', () => {
             const order = { ...change.doc.data(), id: change.doc.id };
             if (order.restaurantId !== restaurantId && Number(order.tenantId) !== tenantId) return;
             const existing = (kdsLiveOrders || []).find(o => o.id === order.id);
+            const previousStatus = existing ? String(existing.status || '').toLowerCase() : '';
+            const alarmStatus = String(order.status || '').toLowerCase();
+            const isUnacknowledged = !alarmStatus || ['received','new','pending'].includes(alarmStatus);
             if (change.type === 'added' && !existing) {
               kdsLiveOrders.unshift(order); saveOrdersToStorage();
               renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor();
-              const alarmStatus = String(order.status || '').toLowerCase();
-              if (isStaffAlarmScreen() && (!alarmStatus || ['received','new','pending'].includes(alarmStatus))) receiveIncomingOrderAlarm(order);
+              if (isStaffAlarmScreen() && isUnacknowledged) receiveIncomingOrderAlarm(order);
             } else if (change.type === 'modified') {
               if (existing) Object.assign(existing, order); else kdsLiveOrders.unshift(order);
               saveOrdersToStorage(); renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor();
+              // A customer order can arrive as a modification when its document already exists.
+              if (isStaffAlarmScreen() && isUnacknowledged && !['received','new','pending'].includes(previousStatus)) receiveIncomingOrderAlarm(order);
             }
           });
         }, err => console.warn('Firebase realtime listener error:', err));
@@ -7355,9 +7359,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('modal-live-order-tracker');
         if (!modal) return;
         updateCompactTrackerUI(ord);
-        modal.classList.remove('hidden');
-        return;
-
         // Fill header data
         if (document.getElementById('tracker-order-id')) document.getElementById('tracker-order-id').innerText = ord.id.startsWith('#') ? ord.id : '#' + ord.id;
         if (document.getElementById('tracker-restaurant-name')) document.getElementById('tracker-restaurant-name').innerText = (activeTenant && activeTenant.name) ? activeTenant.name : 'مطعم كراش';
