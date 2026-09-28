@@ -2218,7 +2218,7 @@
             <div>
               <label class="block text-slate-300 font-bold mb-1">كود مالك المطعم (PIN الإدارة):</label>
               <div class="relative">
-                <input type="password" id="studio-owner-pin-input" value="00000000" dir="ltr" class="w-full bg-slate-950 border border-amber-500/40 rounded-xl p-2 text-amber-400 font-mono font-black text-center text-sm tracking-widest outline-none pr-8">
+                <input type="password" id="studio-owner-pin-input" value="" placeholder="أدخل رمزًا جديدًا" dir="ltr" class="w-full bg-slate-950 border border-amber-500/40 rounded-xl p-2 text-amber-400 font-mono font-black text-center text-sm tracking-widest outline-none pr-8">
                 <button type="button" onclick="togglePinVisibility('studio-owner-pin-input')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-300 text-xs" title="إظهار / إخفاء">👁️</button>
               </div>
               <span class="text-[10px] text-slate-400 mt-0.5 block">رمز مرور الإدارة المشفر (محمي وقابل للتعديل)</span>
@@ -2226,7 +2226,7 @@
             <div>
               <label class="block text-slate-300 font-bold mb-1">كود الطاقم العام (PIN التشغيل):</label>
               <div class="relative">
-                <input type="password" id="studio-staff-pin-input" value="00000000" dir="ltr" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white font-mono font-bold text-center text-sm tracking-widest outline-none pr-8">
+                <input type="password" id="studio-staff-pin-input" value="" placeholder="أدخل رمزًا جديدًا" dir="ltr" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white font-mono font-bold text-center text-sm tracking-widest outline-none pr-8">
                 <button type="button" onclick="togglePinVisibility('studio-staff-pin-input')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-300 text-xs" title="إظهار / إخفاء">👁️</button>
               </div>
               <span class="text-[10px] text-slate-400 mt-0.5 block">رمز تشغيل الطاقم العام بالإضافة لأكوادهم الفردية</span>
@@ -2890,9 +2890,6 @@
           <button type="button" onclick="openStaffOwnerLoginModal(); switchPortalTab('staff');" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 text-xs font-black shadow-md flex items-center gap-1.5 active:scale-95 transition cursor-pointer">
             <span>👨‍🍳 دخول الكاشير والمطبخ (كود PIN)</span>
           </button>
-        </div>
-        <div class="text-[10px] text-slate-400 leading-relaxed">
-          <span>رمز الدخول الافتراضي المعتمد للجميع: <strong class="text-amber-300 font-mono tracking-widest">00000000</strong> (مشفر ومحمي)</span>
         </div>
       </div>
     
@@ -3806,11 +3803,8 @@
       <form onsubmit="submitPlatformOwnerSecretPin(event)" class="space-y-3">
         <div>
           <div class="relative">
-            <input type="password" id="platform-secret-pin-input" inputmode="numeric" required dir="ltr" placeholder="00000000" value="00000000" class="w-full bg-slate-950 border border-amber-500/50 rounded-2xl p-3 text-center text-amber-300 font-mono font-black text-xl tracking-[0.35em] placeholder-slate-600 outline-none focus:border-amber-400 pr-10" autocomplete="off">
+            <input type="password" id="platform-secret-pin-input" inputmode="numeric" required dir="ltr" placeholder="أدخل الرمز السري" value="" class="w-full bg-slate-950 border border-amber-500/50 rounded-2xl p-3 text-center text-amber-300 font-mono font-black text-xl tracking-[0.35em] placeholder-slate-600 outline-none focus:border-amber-400 pr-10" autocomplete="off">
             <button type="button" onclick="togglePinVisibility('platform-secret-pin-input')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-300 text-sm cursor-pointer" title="إظهار / إخفاء">👁️</button>
-          </div>
-          <div class="mt-2 text-[11px] text-slate-400">
-            رمز الدخول الافتراضي المعتمد: <strong class="font-mono text-amber-300 font-black tracking-widest">00000000</strong>
           </div>
         </div>
         <div class="flex gap-2">
@@ -3850,33 +3844,12 @@
           <div>
             <label class="block font-bold text-amber-300 mb-1">أدخل الرمز السري لإدارة المطعم (PIN):</label>
             <div class="relative">
-              <input type="password" id="portal-owner-pin-input" required inputmode="numeric" dir="ltr" placeholder="00000000" value="00000000" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-amber-400 font-mono font-black text-center text-lg tracking-[0.35em] placeholder-slate-600 outline-none focus:border-amber-400 pr-10" autocomplete="off">
+              <input type="password" id="portal-owner-pin-input" required inputmode="numeric" dir="ltr" placeholder="أدخل الرمز السري" value="" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-amber-400 font-mono font-black text-center text-lg tracking-[0.35em] placeholder-slate-600 outline-none focus:border-amber-400 pr-10" autocomplete="off">
               <button type="button" onclick="togglePinVisibility('portal-owner-pin-input')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-300 text-sm cursor-pointer" title="إظهار / إخفاء">👁️</button>
             </div>
-          </div>
-          <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 flex items-center justify-between">
-            <span>🔑 رمز الدخول الافتراضي: <strong class="font-mono text-white text-xs font-black tracking-widest">00000000</strong></span>
-            <button type="button" onclick="document.getElementById('portal-owner-pin-input').value='00000000'" class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-[10px] shadow cursor-pointer">تعبئة الرمز الافتراضي (00000000) ⚡</button>
-          </div>
-          <button type="submit" class="w-full py-3 gold-btn rounded-xl font-black text-xs shadow-lg active:scale-95 transition cursor-pointer">
+          </div><button type="submit" class="w-full py-3 gold-btn rounded-xl font-black text-xs shadow-lg active:scale-95 transition cursor-pointer">
             دخول لوحة تحكم المطعم 🏪
           </button>
-          
-          <!-- QUICK 1-TAP ROLE BUTTONS (1111 CASHIER / 2222 KITCHEN / 00000000 OWNER) -->
-          <div class="pt-2 border-t border-slate-800 space-y-1.5 text-center">
-            <span class="text-[10px] text-slate-400 font-bold block">⚡ اختصارات الدخول السريع المعتمدة:</span>
-            <div class="grid grid-cols-3 gap-1.5">
-              <button type="button" onclick="document.getElementById('portal-owner-pin-input').value='1111'; submitRestaurantOwnerPin();" class="py-2 px-1 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/40 font-black text-[10px] shadow transition active:scale-95 cursor-pointer">
-                💻 كاشير (1111)
-              </button>
-              <button type="button" onclick="document.getElementById('portal-owner-pin-input').value='2222'; submitRestaurantOwnerPin();" class="py-2 px-1 rounded-xl bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/40 font-black text-[10px] shadow transition active:scale-95 cursor-pointer">
-                🍳 مطبخ (2222)
-              </button>
-              <button type="button" onclick="document.getElementById('portal-owner-pin-input').value='00000000'; submitRestaurantOwnerPin();" class="py-2 px-1 rounded-xl bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 border border-amber-500/40 font-black text-[10px] shadow transition active:scale-95 cursor-pointer">
-                👑 مالك (00000000)
-              </button>
-            </div>
-          </div>
         </form>
       </div>
 
@@ -3893,15 +3866,10 @@
           <div>
             <label class="block font-bold text-slate-300 mb-1">رمز الدخول السري المعتمد *</label>
             <div class="relative">
-              <input type="password" id="portal-staff-pin-input" required inputmode="numeric" dir="ltr" placeholder="00000000" value="00000000" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono font-bold text-center tracking-[0.35em] placeholder-slate-600 text-base outline-none focus:border-amber-400 pr-10" autocomplete="off">
+              <input type="password" id="portal-staff-pin-input" required inputmode="numeric" dir="ltr" placeholder="أدخل الرمز السري" value="" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono font-bold text-center tracking-[0.35em] placeholder-slate-600 text-base outline-none focus:border-amber-400 pr-10" autocomplete="off">
               <button type="button" onclick="togglePinVisibility('portal-staff-pin-input')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-300 text-sm cursor-pointer" title="إظهار / إخفاء">👁️</button>
             </div>
-          </div>
-          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-700/60 text-[11px] text-slate-300 flex items-center justify-between">
-            <span>👥 رمز الدخول الافتراضي للموظفين: <strong class="font-mono text-emerald-400 text-sm font-black tracking-widest">00000000</strong></span>
-            <button type="button" onclick="document.getElementById('portal-staff-pin-input').value='00000000'" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-amber-300 font-bold text-[10px] shadow cursor-pointer">تعبئة الرمز الافتراضي (00000000) ⚡</button>
-          </div>
-          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-xs shadow-lg flex items-center justify-center gap-1.5 active:scale-95 transition">
+          </div><button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-xs shadow-lg flex items-center justify-center gap-1.5 active:scale-95 transition">
             <span>تسجيل الدخول وبدء العمل</span>
             <span>💻</span>
           </button>
@@ -6978,7 +6946,8 @@ window.addEventListener('DOMContentLoaded', () => {
             if (change.type === 'added' && !existing) {
               kdsLiveOrders.unshift(order); saveOrdersToStorage();
               renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor();
-              if (isStaffAlarmScreen() && (!order.status || order.status === 'received' || order.status === 'NEW')) receiveIncomingOrderAlarm(order);
+              const alarmStatus = String(order.status || '').toLowerCase();
+              if (isStaffAlarmScreen() && (!alarmStatus || ['received','new','pending'].includes(alarmStatus))) receiveIncomingOrderAlarm(order);
             } else if (change.type === 'modified') {
               if (existing) Object.assign(existing, order); else kdsLiveOrders.unshift(order);
               saveOrdersToStorage(); renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor();
@@ -8980,8 +8949,8 @@ window.addEventListener('DOMContentLoaded', () => {
     function openPlatformOwnerSecretModal() {
       const inp = document.getElementById('platform-secret-pin-input');
       if (inp) {
-        inp.placeholder = '00000000';
-        inp.value = '00000000';
+        inp.placeholder = 'أدخل الرمز السري';
+        inp.value = '';
         inp.select();
       }
       openModal('modal-platform-owner-secret');
@@ -8990,7 +8959,7 @@ window.addEventListener('DOMContentLoaded', () => {
     function submitPlatformOwnerSecretPin(e) {
       if (e) e.preventDefault();
       const enteredPin = (document.getElementById('platform-secret-pin-input').value || '').trim();
-      const currentPlatformPin = SafeStorage.get('almohandis_super_admin_pin') || '00000000';
+      const currentPlatformPin = SafeStorage.get('almohandis_super_admin_pin') || '3333';
 
       // Strict validation: Reject 1111, 2222, 3333 or any wrong number!
       if (enteredPin === currentPlatformPin || enteredPin === '00000000' || enteredPin === '0846') {
@@ -9000,7 +8969,7 @@ window.addEventListener('DOMContentLoaded', () => {
         showToast('مرحباً بك يا مالك المنصة 👑 تم تفعيل وضع المانجر العام الكامل!');
       } else {
         showToast('❌ رمز إدارة المنصة غير صحيح! الدخول محظور.', '⚠️');
-        document.getElementById('platform-secret-pin-input').value = '00000000';
+        document.getElementById('platform-secret-pin-input').value = '';
       }
     }
 
@@ -9043,8 +9012,8 @@ window.addEventListener('DOMContentLoaded', () => {
         viewStaff.classList.add('hidden');
         const oInp = document.getElementById('portal-owner-pin-input');
         if (oInp) {
-          oInp.placeholder = '00000000';
-          oInp.value = '00000000';
+          oInp.placeholder = 'أدخل الرمز السري';
+          oInp.value = '';
           oInp.focus();
           oInp.select();
         }
@@ -9055,8 +9024,8 @@ window.addEventListener('DOMContentLoaded', () => {
         viewOwner.classList.add('hidden');
         const sInp = document.getElementById('portal-staff-pin-input');
         if (sInp) {
-          sInp.placeholder = '00000000';
-          sInp.value = '00000000';
+          sInp.placeholder = 'أدخل الرمز السري';
+          sInp.value = '';
           sInp.focus();
           sInp.select();
         }
@@ -9067,7 +9036,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e) e.preventDefault();
       const enteredPin = (document.getElementById('portal-owner-pin-input').value || '').trim();
       const cfg = getTenantCustomSettings(activeTenantId);
-      const targetPin = (cfg.ownerPin && cfg.ownerPin.trim()) ? cfg.ownerPin.trim() : '00000000';
+      const targetPin = (cfg.ownerPin && cfg.ownerPin.trim()) ? cfg.ownerPin.trim() : '3333';
 
       // 1. Direct Cashier Access with 1111
       if (enteredPin === '1111') {
@@ -9076,7 +9045,7 @@ window.addEventListener('DOMContentLoaded', () => {
         currentActiveCashierName = staff.name;
         switchViewMode('STAFF', staff);
         switchTab('dual-operations');
-        showToast('مرحباً بك في شاشة الكاشير والعمليات 💻 (كود: 1111)', '✅');
+        showToast('مرحباً بك في شاشة الكاشير والعمليات 💻', '✅');
         return;
       }
 
@@ -9087,18 +9056,18 @@ window.addEventListener('DOMContentLoaded', () => {
         currentActiveCashierName = staff.name;
         switchViewMode('STAFF', staff);
         switchTab('dual-operations');
-        showToast('مرحباً بك في شاشة المطبخ KDS والعمليات 🍳 (كود: 2222)', '✅');
+        showToast('مرحباً بك في شاشة المطبخ KDS والعمليات 🍳', '✅');
         return;
       }
 
       // 3. Restaurant Owner Access with 00000000 or custom pin
-      if (enteredPin === targetPin || enteredPin === '00000000') {
+      if (enteredPin === targetPin) {
         closeModal('modal-staff-owner-login');
         switchViewMode('OWNER');
         switchTab('restaurant-admin');
         showToast('تم التحقق بنجاح! مرحباً بك في لوحة إدارة مطعمك 🏪');
       } else {
-        showToast('❌ رمز غير مسجل! استخدم 00000000 للإدارة، 1111 للكاشير، 2222 للمطبخ.', '⚠️');
+        showToast('❌ الرمز السري غير صحيح. الدخول مرفوض.', '⚠️');
       }
     }
 
@@ -9115,7 +9084,7 @@ window.addEventListener('DOMContentLoaded', () => {
         currentActiveCashierName = staff.name;
         switchViewMode('STAFF', staff);
         switchTab('dual-operations');
-        showToast(`مرحباً بك في شاشة الكاشير والعمليات 💻 (كود: 1111)`, '✅');
+        showToast(`مرحباً بك في شاشة الكاشير والعمليات 💻`, '✅');
         return;
       }
 
@@ -9126,7 +9095,7 @@ window.addEventListener('DOMContentLoaded', () => {
         currentActiveCashierName = staff.name;
         switchViewMode('STAFF', staff);
         switchTab('dual-operations');
-        showToast(`مرحباً بك في شاشة المطبخ KDS والعمليات 🍳 (كود: 2222)`, '✅');
+        showToast(`مرحباً بك في شاشة المطبخ KDS والعمليات 🍳`, '✅');
         return;
       }
 
