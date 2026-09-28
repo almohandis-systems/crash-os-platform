@@ -9036,7 +9036,8 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e) e.preventDefault();
       const enteredPin = (document.getElementById('portal-owner-pin-input').value || '').trim();
       const cfg = getTenantCustomSettings(activeTenantId);
-      const targetPin = (cfg.ownerPin && cfg.ownerPin.trim()) ? cfg.ownerPin.trim() : '3333';
+      const savedOwnerPin = (cfg.ownerPin || '').trim();
+      const targetPin = (savedOwnerPin && savedOwnerPin !== '00000000') ? savedOwnerPin : '3333';
 
       // 1. Direct Cashier Access with 1111
       if (enteredPin === '1111') {
