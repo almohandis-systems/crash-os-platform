@@ -710,7 +710,7 @@
   <meta name="apple-mobile-web-app-title" content="منيو المهندس">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#030712">
-  <link rel="manifest" id="dynamic-manifest" href="manifest.json">
+  <link rel="manifest" id="dynamic-manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" id="dynamic-apple-icon" href="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=512&q=80">
 </head>
 <!-- CRASH OS AUDIO ROUTING FIX: customer confirmation is silent; staff screens alarm -->
@@ -1803,6 +1803,12 @@
           <div class="text-xs font-black text-white">نسخة احتياطية</div>
           <div class="text-[10px] text-emerald-400">حفظ ملف JSON كامل</div>
         </button>
+        <button onclick="document.getElementById('backup-restore-input').click()" class="glass-card p-3.5 rounded-2xl hover:border-blue-500 transition active:scale-95 group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">♻️</div>
+          <div class="text-xs font-black text-white">استرجاع نسخة</div>
+          <div class="text-[10px] text-blue-400">من ملف JSON محفوظ</div>
+        </button>
+        <input id="backup-restore-input" type="file" accept="application/json,.json" class="hidden" onchange="restoreDatabaseJSON(event)">
       </div>
 
       <!-- Meals List Container -->
@@ -7795,13 +7801,47 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function exportDatabaseJSON() {
-      const backupData = { tenants, allMeals, allStaff, shiftData };
+      const backupData = {
+        schemaVersion: 2,
+        exportedAt: new Date().toISOString(),
+        tenants,
+        allMeals,
+        allStaff,
+        shiftData,
+        orders: Array.isArray(kdsLiveOrders) ? kdsLiveOrders : []
+      };
       const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
       const a = document.createElement('a');
       a.href = str;
       a.download = 'نسخة_منظومة_المهندس_' + new Date().toISOString().slice(0, 10) + '.json';
       a.click();
       showToast('تم تصدير وحفظ قاعدة البيانات بنجاح! 💾');
+    }
+    function restoreDatabaseJSON(event) {
+      const file = event && event.target && event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result || ''));
+          if (!Array.isArray(data.tenants) || !Array.isArray(data.allMeals)) throw new Error('invalid backup');
+          if (!confirm('سيتم استبدال بيانات المطاعم والمنيو المحلية بالنسخة المختارة. هل تريد المتابعة؟')) return;
+          tenants.splice(0, tenants.length, ...data.tenants);
+          allMeals.splice(0, allMeals.length, ...data.allMeals);
+          if (Array.isArray(data.allStaff)) { allStaff.splice(0, allStaff.length, ...data.allStaff); }
+          if (data.shiftData && typeof data.shiftData === 'object') shiftData = data.shiftData;
+          if (Array.isArray(data.orders)) { kdsLiveOrders = data.orders; saveOrdersToStorage(); }
+          saveTenantsToStorage(); saveMealsToStorage();
+          activeTenant = tenants.find(t => t.id === activeTenantId) || tenants[0];
+          if (activeTenant) applyActiveTenant();
+          showToast('تم استرجاع النسخة الاحتياطية والتحقق منها بنجاح! ♻️');
+        } catch (err) {
+          showToast('ملف النسخة الاحتياطية غير صالح أو تالف!', '⚠️');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
     }
 
     function updateClock() {
