@@ -2885,28 +2885,14 @@
         </div>
       </div>
 
-      <!-- PROMINENT ENTRANCE PORTAL FOR OWNER & STAFF -->
-      <div class="p-4 my-6 rounded-3xl bg-slate-900/90 border border-slate-800 text-center space-y-3 shadow-xl">
-        <div class="text-xs font-bold text-slate-200 flex items-center justify-center gap-1.5">
-          <span class="text-base">🔐</span>
-          <span>بوابة تسجيل الدخول الخاصة بـ مالك المطعم وطاقم العمل:</span>
+      <!-- DISCREET BRANDED ACCESS: no role labels exposed to customers -->
+      <div id="customer-discreet-access" class="my-4 py-2 text-center flex items-center justify-center gap-2 select-none" dir="ltr">
+        <div class="text-right leading-tight">
+          <div class="text-[11px] font-black tracking-wider text-slate-300">ALMOHANDIS -SYSTEMS</div>
+          <div class="text-[9px] font-bold text-slate-500">لإدارة وتطوير المطاعم الاحترافية</div>
         </div>
-        <div class="flex flex-wrap items-center justify-center gap-2">
-          <button type="button" onclick="openStaffOwnerLoginModal(); switchPortalTab('owner');" class="py-2.5 px-4 rounded-xl gold-btn text-xs font-black shadow-md flex items-center gap-1.5 active:scale-95 transition cursor-pointer">
-            <span>🏢 دخول مالك المطعم (كود PIN)</span>
-          </button>
-          <button type="button" onclick="openStaffOwnerLoginModal(); switchPortalTab('staff');" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 text-xs font-black shadow-md flex items-center gap-1.5 active:scale-95 transition cursor-pointer">
-            <span>👨‍🍳 دخول الكاشير والمطبخ (كود PIN)</span>
-          </button>
-        </div>
+        <button type="button" id="discreet-lock-button" aria-label="ALMOHANDIS SYSTEMS" title="ALMOHANDIS SYSTEMS" class="w-9 h-9 rounded-xl bg-slate-900/70 border border-slate-700 text-slate-400 text-sm flex items-center justify-center select-none" onclick="handleDiscreetLockTap()" onpointerdown="startDiscreetLockHold(event)" onpointerup="cancelDiscreetLockHold(event)" onpointercancel="cancelDiscreetLockHold(event)" onpointerleave="cancelDiscreetLockHold(event)">🔒</button>
       </div>
-    
-        <!-- FLOATING DISCREET MANAGER ENTRANCE (FOR RESTAURANT OWNER & MANAGER) -->
-        <div class="pt-6 pb-2 text-center">
-          <button type="button" onclick="openStaffOwnerLoginModal(); switchPortalTab('owner');" class="px-3.5 py-1.5 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-amber-300 text-[11px] font-bold rounded-full border border-slate-800 transition">
-            ⚙️ دخول لوحة الإدارة والتحكم
-          </button>
-        </div>
 </section>
 
   <!-- FLOATING CLASSIC MODE TOGGLE BUTTON (If position is floating) -->
@@ -9038,6 +9024,43 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
+    // DISCREET STAFF/OWNER LOCK: three taps or a silent three-second hold.
+    let discreetLockTapCount = 0;
+    let discreetLockTapTimer = null;
+    let discreetLockHoldTimer = null;
+    let discreetLockSuppressClick = false;
+
+    function openDiscreetStaffOwnerLogin() {
+      discreetLockTapCount = 0;
+      if (discreetLockTapTimer) clearTimeout(discreetLockTapTimer);
+      openStaffOwnerLoginModal();
+      switchPortalTab('owner');
+    }
+
+    function handleDiscreetLockTap() {
+      if (discreetLockSuppressClick) { discreetLockSuppressClick = false; return; }
+      discreetLockTapCount += 1;
+      if (discreetLockTapTimer) clearTimeout(discreetLockTapTimer);
+      discreetLockTapTimer = setTimeout(() => { discreetLockTapCount = 0; }, 1800);
+      if (discreetLockTapCount >= 3) openDiscreetStaffOwnerLogin();
+    }
+
+    function startDiscreetLockHold(event) {
+      if (event && event.pointerType === 'mouse' && event.button !== 0) return;
+      if (discreetLockHoldTimer) clearTimeout(discreetLockHoldTimer);
+      discreetLockHoldTimer = setTimeout(() => {
+        discreetLockSuppressClick = true;
+        openDiscreetStaffOwnerLogin();
+      }, 3000);
+    }
+
+    function cancelDiscreetLockHold() {
+      if (discreetLockHoldTimer) {
+        clearTimeout(discreetLockHoldTimer);
+        discreetLockHoldTimer = null;
+      }
+    }
+
     // SECRET 5-TAP LOGO TRIGGER & SECURITY AUTHENTICATION SYSTEM
     // =========================================================================
     let superAdminTapCount = 0;
