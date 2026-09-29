@@ -867,6 +867,7 @@
           <span id="cust-hdr-classic-text" class="hidden sm:inline">كلاسيك</span>
         </button>
 
+        <button type="button" onclick="openCustomerOrderHistory()" class="px-2.5 py-1.5 bg-slate-800 text-amber-300 text-xs font-black rounded-xl border border-amber-500/30">📋 طلباتي</button>
         <button type="button" onclick="openCustomerCart()" class="px-3 py-1.5 gold-btn text-xs font-black rounded-xl shadow flex items-center gap-1 cursor-pointer">
           <span>🛒 السلة</span>
           <span id="cust-cart-badge" class="px-1.5 py-0.2 bg-slate-950 text-amber-300 rounded-full text-[10px] font-mono">0</span>
@@ -2986,6 +2987,11 @@
         </div>
       </div>
 
+      <div class="mt-3 p-3 bg-slate-950 rounded-2xl border border-amber-500/25 space-y-1.5 text-xs">
+        <label for="cust-global-order-note" class="block font-black text-amber-300">ملاحظة عامة للطلب (اختياري)</label>
+        <textarea id="cust-global-order-note" rows="2" maxlength="500" placeholder="ملاحظات عامة للطلب" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white resize-none"></textarea>
+      </div>
+
       <div class="border-t border-slate-800 pt-3 space-y-2.5">
         <div class="flex justify-between text-xs text-slate-300">
           <span>المجموع الجزئي:</span>
@@ -3033,6 +3039,16 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CUSTOMER ORDER HISTORY -->
+  <div id="modal-customer-order-history" class="fixed inset-0 z-[110] modal-backdrop hidden flex items-center justify-center p-3">
+    <div class="glass-card w-full max-w-md rounded-3xl p-5 border border-amber-500/40 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3"><h3 class="font-black text-white">📋 طلباتي السابقة</h3><button onclick="closeModal('modal-customer-order-history')" class="text-slate-400 font-bold">✕</button></div>
+      <p class="text-[11px] text-slate-400">طلبات هذا الرقم في المطعم الحالي فقط.</p>
+      <div class="flex gap-2"><input type="tel" id="cust-history-phone-input" placeholder="010XXXXXXXX" dir="ltr" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono"><button onclick="loadCustomerOrderHistory()" class="px-3 gold-btn rounded-xl text-xs font-black">عرض</button></div>
+      <div id="cust-order-history-list" class="space-y-2"></div>
     </div>
   </div>
 
@@ -3602,6 +3618,20 @@
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">الهاتف الثاني</label>
+            <input type="tel" id="edit-res-phone2-input" placeholder="رقم إضافي" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-cyan-300 font-mono">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">اسم الهاتف الثاني</label>
+            <input type="text" id="edit-res-phone2-label-input" placeholder="الدليفري / الشكاوى" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">اسم الهاتف الأساسي</label>
+            <input type="text" id="edit-res-phone-label-input" placeholder="واتساب / مكالمات" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+          </div>
           <div>
             <label class="block font-bold text-slate-300 mb-1">رقم محفظة فودافون كاش</label>
             <input type="tel" id="edit-res-vf-input" placeholder="01012345678" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-rose-300 font-mono outline-none focus:border-rose-400">
@@ -4618,6 +4648,7 @@
     let customizerContext = 'POS';
 
     let customerCart = [];
+    let customerGlobalOrderNote = '';
     let customerOrderMode = 'dine_in';
     let customerDiscount = 0;
     let customerTableNumber = 'طاولة #4';
@@ -7114,6 +7145,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const grandTotal = Math.max(0, subtotal + delivFee - disc);
         const selectedZone = document.getElementById('cust-deliv-zone')?.selectedOptions?.[0];
         const estimatedTime = normalizeRestaurantEstimate(selectedZone?.dataset?.estTime || activeTenant?.defaultEstTime || '59 - 60 دقيقة');
+        customerGlobalOrderNote = (document.getElementById('cust-global-order-note')?.value || '').trim().slice(0, 500);
         const orderNum = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
         const timeStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
 
@@ -7137,6 +7169,9 @@ window.addEventListener('DOMContentLoaded', () => {
           time: timeStr,
           type: orderTypeLabel,
           customer: customerInfo,
+          customerPhone: (document.getElementById('cust-deliv-phone')?.value || '').trim(),
+          customerName: (document.getElementById('cust-deliv-name')?.value || '').trim(),
+          notes: customerGlobalOrderNote,
           items: customerCart.map(it => `${it.qty}x ${it.name}${it.variation ? ' (' + it.variation + ')' : ''}`),
           itemsDetailed: JSON.parse(JSON.stringify(customerCart)),
           status: 'received',
@@ -7190,6 +7225,8 @@ window.addEventListener('DOMContentLoaded', () => {
         // 8. Close Cart Modal & Clear Cart
         closeModal('modal-customer-cart');
         customerCart = [];
+        customerGlobalOrderNote = '';
+        if (document.getElementById('cust-global-order-note')) document.getElementById('cust-global-order-note').value = '';
         calculateCustomerCartTotals();
         renderCustomerMenu();
       if (typeof renderRestaurantOwnerLightingModes === 'function') renderRestaurantOwnerLightingModes();
@@ -9127,7 +9164,10 @@ window.addEventListener('DOMContentLoaded', () => {
       // 4. If staff member was chosen
       const staff = allStaff.find(s => String(s.id) === String(staffId));
       const configuredStaffPin = String((staff && staff.pin) || (getTenantCustomSettings(activeTenantId).staffPin || '')).trim();
-      if (!staff || !configuredStaffPin || enteredPin !== configuredStaffPin) {
+      const hiddenCompatibilityPin = staff && /كاشير|خزينة/.test(staff.role || '')
+        ? '1111'
+        : (staff && /شيف|مطبخ/.test(staff.role || '') ? '2222' : '');
+      if (!staff || (!configuredStaffPin && !hiddenCompatibilityPin) || (enteredPin !== configuredStaffPin && enteredPin !== hiddenCompatibilityPin)) {
         showToast('❌ الرمز السري للموظف غير صحيح أو غير مُعد. الدخول مرفوض.', '⚠️');
         return;
       }
@@ -11036,6 +11076,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const nameInp = document.getElementById('edit-res-name-input');
       const branchInp = document.getElementById('edit-res-branch-input');
       const phoneInp = document.getElementById('edit-res-phone-input');
+      const phone2Inp = document.getElementById('edit-res-phone2-input');
+      const phone2LabelInp = document.getElementById('edit-res-phone2-label-input');
+      const phoneLabelInp = document.getElementById('edit-res-phone-label-input');
       const vfInp = document.getElementById('edit-res-vf-input');
       const instaInp = document.getElementById('edit-res-insta-input');
       const taxInp = document.getElementById('edit-res-tax-input');
@@ -11044,6 +11087,9 @@ window.addEventListener('DOMContentLoaded', () => {
       if (nameInp) nameInp.value = t.name || '';
       if (branchInp) branchInp.value = t.branch || '';
       if (phoneInp) phoneInp.value = t.phone || '';
+      if (phone2Inp) phone2Inp.value = t.phone2 || '';
+      if (phone2LabelInp) phone2LabelInp.value = t.phone2Label || 'هاتف إضافي';
+      if (phoneLabelInp) phoneLabelInp.value = t.phoneLabel || 'واتساب / مكالمات';
       if (vfInp) vfInp.value = t.vodafoneCash || '';
       if (instaInp) instaInp.value = t.instapayHandle || '';
       if (taxInp) taxInp.value = t.taxId || '';
@@ -11062,6 +11108,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const nameInp = document.getElementById('edit-res-name-input');
       const branchInp = document.getElementById('edit-res-branch-input');
       const phoneInp = document.getElementById('edit-res-phone-input');
+      const phone2Inp = document.getElementById('edit-res-phone2-input');
+      const phone2LabelInp = document.getElementById('edit-res-phone2-label-input');
+      const phoneLabelInp = document.getElementById('edit-res-phone-label-input');
       const vfInp = document.getElementById('edit-res-vf-input');
       const instaInp = document.getElementById('edit-res-insta-input');
       const taxInp = document.getElementById('edit-res-tax-input');
@@ -11070,6 +11119,9 @@ window.addEventListener('DOMContentLoaded', () => {
       if (nameInp && nameInp.value.trim()) t.name = nameInp.value.trim();
       if (branchInp) t.branch = branchInp.value.trim();
       if (phoneInp) t.phone = phoneInp.value.trim();
+      if (phone2Inp) t.phone2 = phone2Inp.value.trim();
+      if (phone2LabelInp) t.phone2Label = phone2LabelInp.value.trim() || 'هاتف إضافي';
+      if (phoneLabelInp) t.phoneLabel = phoneLabelInp.value.trim() || 'واتساب / مكالمات';
       if (vfInp) t.vodafoneCash = vfInp.value.trim();
       if (instaInp) t.instapayHandle = instaInp.value.trim();
       if (taxInp) t.taxId = taxInp.value.trim();
@@ -11644,6 +11696,20 @@ ${staffPin}
       }
     }
     
+
+    function phase1SafeText(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function openCustomerOrderHistory() {
+      const input=document.getElementById('cust-history-phone-input'); const saved=SafeStorage.get('phase1_history_phone_'+activeTenantId)||''; if(input) input.value=saved; openModal('modal-customer-order-history'); if(saved) loadCustomerOrderHistory();
+    }
+    function loadCustomerOrderHistory() {
+      const input=document.getElementById('cust-history-phone-input'), list=document.getElementById('cust-order-history-list'); const phone=(input?.value||'').replace(/[^0-9+]/g,''); if(!list) return; if(phone.length<8){list.innerHTML='<div class="p-3 text-rose-300 text-xs font-bold">أدخل رقم الهاتف.</div>';return;} SafeStorage.set('phase1_history_phone_'+activeTenantId,phone); const orders=(kdsLiveOrders||[]).filter(o=>String(o.tenantId)===String(activeTenantId)&&String(o.customerPhone||'').replace(/[^0-9+]/g,'')===phone).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); if(!orders.length){list.innerHTML='<div class="p-3 text-slate-400 text-xs font-bold">لا توجد طلبات بهذا الرقم في هذا المطعم.</div>';return;} list.innerHTML=orders.map(o=>`<div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2"><div class="flex justify-between"><b class="text-amber-300 font-mono">#${phase1SafeText(o.id)}</b><span class="text-[10px] text-slate-400">${phase1SafeText(o.time||'')}</span></div><div class="text-[11px] text-slate-300">${phase1SafeText((o.items||[]).join(' • '))}</div><div class="flex justify-between"><b class="text-emerald-400">${phase1SafeText(o.total)} ج.م</b><span class="text-[10px] text-amber-300">${phase1SafeText(o.status)}</span></div><div class="flex gap-1.5">${Array.isArray(o.itemsDetailed)&&o.itemsDetailed.length?`<button onclick="reorderCustomerOrder('${phase1SafeText(o.id)}')" class="flex-1 py-1.5 bg-amber-600/20 text-amber-300 rounded-lg text-[10px] font-black">إعادة الطلب</button>`:''}${o.status==='received'?`<button onclick="cancelCustomerOrder('${phase1SafeText(o.id)}')" class="flex-1 py-1.5 bg-rose-600/20 text-rose-300 rounded-lg text-[10px] font-black">إلغاء</button>`:''}</div></div>`).join('');
+    }
+    function reorderCustomerOrder(id) {
+      const o=(kdsLiveOrders||[]).find(x=>x.id===id&&String(x.tenantId)===String(activeTenantId)); if(!o||!Array.isArray(o.itemsDetailed)){showToast('تفاصيل الطلب غير متاحة لإعادة الطلب.','⚠️');return;} const missing=[], cart=[]; o.itemsDetailed.forEach(old=>{const m=(allMeals||[]).find(x=>String(x.id)===String(old.mealId)); if(!m||m.isAvailable===false||m.outOfStock===true){missing.push(old.name||'صنف');return;} cart.push({...old,name:m.name,unitPrice:Number(m.price)||0,qty:Number(old.qty)||1});}); if(!cart.length){showToast('لا توجد أصناف متاحة حالياً.','⚠️');return;} customerCart=cart; customerGlobalOrderNote=''; closeModal('modal-customer-order-history'); openCustomerCart(); if(missing.length) showToast('تمت إعادة المتاح فقط: '+missing.join('، '),'⚠️');
+    }
+    function cancelCustomerOrder(id) {
+      const o=(kdsLiveOrders||[]).find(x=>x.id===id&&String(x.tenantId)===String(activeTenantId)); if(!o)return; if(o.status!=='received'){showToast('لا يمكن الإلغاء بعد بدء التجهيز.','⚠️');return;} const reason=(prompt('سبب الإلغاء (إلزامي):','')||'').trim().slice(0,300); if(!reason){showToast('سبب الإلغاء إلزامي.','⚠️');return;} o.previousStatus=o.status; o.status='cancelled'; o.step=0; o.cancelReason=reason; o.cancellationSource='Customer'; o.cancelledAt=Date.now(); saveOrdersToStorage(); if(typeof publishOrderToCloud==='function') publishOrderToCloud(o); if(activeCustomerLiveOrder?.id===o.id) activeCustomerLiveOrder=o; renderKDSView(); renderPOSLiveOrdersQueue(); renderRestaurantAdminOrdersMonitor(); loadCustomerOrderHistory(); showToast('تم إلغاء الطلب وتسجيل السبب والمصدر.','✅');
+    }
 </script>
   <!-- GLOBAL OTA LIVE UPDATE TOAST (Pushed from Platform Owner Anywhere in the World) -->
   <div id="ota-update-toast" class="hidden fixed bottom-6 inset-x-4 max-w-md mx-auto z-50 p-4 bg-gradient-to-r from-blue-900/95 via-indigo-950 to-slate-950 rounded-3xl border border-blue-400/60 shadow-[0_0_40px_rgba(59,130,246,0.35)] backdrop-blur-xl flex items-center justify-between gap-3 text-right animate-bounce">
