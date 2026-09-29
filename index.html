@@ -2722,6 +2722,7 @@
           </div>
           <h2 id="customer-restaurant-title" class="text-lg font-black text-white neon-text-glow">مطعم كراش برجر</h2>
           <p id="customer-restaurant-desc" class="text-[10px] text-slate-400">الفيوم - شارع الجامعة الرئيسي</p>
+          <div id="cust-menu-phone-links" dir="ltr" class="text-[10px] text-cyan-300 font-bold mt-1 truncate max-w-full"></div>
         </div>
 
         <!-- LUXURY NEON DIGITAL CLOCK & DATE -->
@@ -3592,8 +3593,8 @@
     </div>
   </div
   <!-- MODAL: EDIT CURRENT RESTAURANT INFO (تعديل بيانات المطعم الحالي وحفظها) -->
-  <div id="modal-edit-restaurant" class="fixed inset-0 z-[260] modal-backdrop hidden flex items-center justify-center p-3">
-    <div class="glass-card w-full max-w-md rounded-3xl p-6 border-2 border-amber-500/60 shadow-2xl space-y-4 text-right bg-slate-950/98">
+  <div id="modal-edit-restaurant" class="fixed inset-0 z-[260] modal-backdrop hidden flex items-center justify-center p-3 overflow-y-auto">
+    <div class="glass-card w-full max-w-md max-h-[88dvh] overflow-y-auto no-scrollbar rounded-3xl p-5 border-2 border-amber-500/60 shadow-2xl space-y-3 text-right bg-slate-950/98">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <div class="flex items-center gap-2">
           <span class="text-2xl">✏️</span>
@@ -4987,13 +4988,21 @@ window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('tab-restaurant-label').innerText = '🏪 منيو ' + activeTenant.name;
       document.getElementById('pos-restaurant-name').innerText = activeTenant.name;
       document.getElementById('current-restaurant-name').innerText = activeTenant.name;
-      document.getElementById('current-restaurant-phone-display').innerText = formatPhoneNumber(activeTenant.phone);
+      const primaryPhoneText = activeTenant.phone ? ((activeTenant.phoneLabel || 'هاتف المطعم') + ': ' + formatPhoneNumber(activeTenant.phone)) : '';
+      const secondaryPhoneText = activeTenant.phone2 ? (' • ' + (activeTenant.phone2Label || 'هاتف إضافي') + ': ' + formatPhoneNumber(activeTenant.phone2)) : '';
+      document.getElementById('current-restaurant-phone-display').innerText = primaryPhoneText + secondaryPhoneText;
       document.getElementById('kds-restaurant-name').innerText = activeTenant.name;
       document.getElementById('floor-restaurant-name').innerText = activeTenant.name;
       document.getElementById('delivery-zones-restaurant-name').innerText = activeTenant.name;
       document.getElementById('reports-restaurant-name').innerText = activeTenant.name;
       document.getElementById('customer-restaurant-title').innerText = activeTenant.name;
       document.getElementById('customer-restaurant-desc').innerText = activeTenant.branch;
+      const customerPhoneLinks = document.getElementById('cust-menu-phone-links');
+      if (customerPhoneLinks) {
+        const p1 = activeTenant.phone ? ((activeTenant.phoneLabel || 'هاتف المطعم') + ': ' + formatPhoneNumber(activeTenant.phone)) : '';
+        const p2 = activeTenant.phone2 ? (' • ' + (activeTenant.phone2Label || 'هاتف إضافي') + ': ' + formatPhoneNumber(activeTenant.phone2)) : '';
+        customerPhoneLinks.innerText = p1 + p2;
+      }
       updateAllTenantAvatars();
       if (cloudDb) { listenToCloudOrders(); loadTenantBrandingFromCloud(); }
       document.getElementById('links-restaurant-name').innerText = activeTenant.name;
