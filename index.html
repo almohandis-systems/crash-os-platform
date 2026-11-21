@@ -7612,7 +7612,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const amt = document.getElementById('vf-amt-display')?.innerText || '0 ج.م';
       const resName = (activeTenant && activeTenant.name) ? activeTenant.name : 'المطعم';
       const text = encodeURIComponent(`السلام عليكم، تم تحويل مبلغ ${amt} عبر محفظة فودافون كاش لطلب ${resName}. مرفق إشعار التحويل 🧾`);
-      window.open(`https://wa.me/20${cleanPhone}?text=${text}`, '_blank');
+      window.open(`https://wa.me/96565704145?text=${text}`, '_blank');
     }
 
     function dispatchKDSOrderToDelivery(orderId) {
@@ -7660,7 +7660,7 @@ window.addEventListener('DOMContentLoaded', () => {
       msg += 'يرجى تأكيد وبدء التجهيز.';
 
       const cleanPhone = activeTenant.phone.replace(/[^0-9]/g, '');
-      const url = 'https://wa.me/2' + cleanPhone + '?text=' + encodeURIComponent(msg);
+      const url = 'https://wa.me/96565704145?text=' + encodeURIComponent(msg);
       window.open(url, '_blank');
       closeModal('modal-customer-cart');
       showToast('جاري فتح واتساب لإرسال الطلب للكاشير!');
@@ -11946,5 +11946,16 @@ ${staffPin}
 
     </div>
   </div
-  </body>
+  <script>
+(()=>{const wa='https://wa.me/96565704145',call='tel:+201013376681';
+function contacts(){
+for(const id of ['hdr-phone1-btn','card-phone1-wa','card-phone2-wa','track-whatsapp-btn','lock-screen-whatsapp-btn']){const e=document.getElementById(id);if(e){const q=(e.getAttribute('href')||'').split('?')[1];const dest=wa+(q?'?'+q:'');if(e.getAttribute('href')!==dest)e.setAttribute('href',dest);}}
+for(const id of ['hdr-phone2-btn','card-phone1-call','card-phone2-call']){const e=document.getElementById(id);if(e&&e.getAttribute('href')!==call)e.setAttribute('href',call);}
+for(const id of ['hdr-phone1-val','card-phone1-display']){const e=document.getElementById(id);if(e&&e.textContent!=='+96565704145')e.textContent='+96565704145';}
+for(const id of ['hdr-phone2-val','card-phone2-display']){const e=document.getElementById(id);if(e&&e.textContent!=='01013376681')e.textContent='01013376681';}
+}
+contacts();new MutationObserver(contacts).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['href']});
+})();
+</script>
+</body>
 </html>
