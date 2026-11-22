@@ -742,6 +742,12 @@
       box-shadow: 0 40px 90px -40px rgba(245,158,11,.25), 0 30px 60px -30px rgba(0,0,0,.9) !important;
     }
     body.theme-360-cinematic #customer-restaurant-title { background: linear-gradient(135deg,#fde68a 0%,#f59e0b 55%,#d97706 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 10px rgba(245,158,11,.35)); }
+    /* 3D cinematic meal cards */
+    body.theme-360-cinematic #customer-menu-items { perspective: 1200px; }
+    body.theme-360-cinematic .theme-meal-card { transform-style: preserve-3d; backface-visibility: hidden; transition: transform .45s cubic-bezier(.2,.8,.25,1), box-shadow .45s ease, border-color .3s ease; border: 1px solid rgba(251,191,36,.18); }
+    body.theme-360-cinematic .theme-meal-card.cine-hover { border-color: rgba(251,191,36,.5); }
+    body.theme-360-cinematic .theme-meal-card img { transform: translateZ(0); }
+    @media (prefers-reduced-motion: reduce) { body.theme-360-cinematic .theme-meal-card { transition: none !important; transform: none !important; } }
     @media (prefers-reduced-motion: reduce) { body.theme-360-cinematic button, body.theme-360-cinematic .glass-card { transition: none !important; } }
   </style>
 </head>
@@ -9321,6 +9327,32 @@ window.addEventListener('DOMContentLoaded', () => {
       renderCustomerMenuFiltered(currentCustomerCategoryFilter || 'all');
     }
 
+    // Cinematic design set: professional photography fallback for cards without an uploaded image.
+    const CINE_CATEGORY_IMAGES = {
+      'سندوتشات': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80',
+      'مقبلات': 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=900&q=80',
+      'مشروبات': 'https://images.unsplash.com/photo-1437418747212-8d9709afab22?auto=format&fit=crop&w=900&q=80',
+      'وجبات رئيسية': 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+      'حلويات': 'https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=900&q=80'
+    };
+    const CINE_KEYWORD_IMAGES = [
+      ['برجر', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80'],
+      ['شاورما', 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=900&q=80'],
+      ['بيتزا', 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=80'],
+      ['قهوة', 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80'],
+      ['كوفي', 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80'],
+      ['فرايز', 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=900&q=80'],
+      ['بطاطس', 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=900&q=80']
+    ];
+    const CINE_DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80';
+    function resolveMealCardImage(m) {
+      if (m.image) return m.image;
+      if (!document.body.classList.contains('theme-360-cinematic')) return null;
+      const name = (m.name || '');
+      for (const [kw, url] of CINE_KEYWORD_IMAGES) { if (name.includes(kw)) return url; }
+      return CINE_CATEGORY_IMAGES[m.category] || CINE_DEFAULT_IMAGE;
+    }
+
     function renderCustomerMenuFiltered(filterCategory) {
       currentCustomerCategoryFilter = filterCategory || 'all';
       const c = document.getElementById('customer-menu-items');
@@ -9347,6 +9379,7 @@ window.addEventListener('DOMContentLoaded', () => {
       currentMeals.forEach(m => {
         const div = document.createElement('div');
         const isOutOfStock = !m.inStock;
+        const cardImg = resolveMealCardImage(m);
 
         if (customerMealLayoutMode === 'stacked') {
           // ===============================================================
@@ -9357,8 +9390,8 @@ window.addEventListener('DOMContentLoaded', () => {
           div.innerHTML = `
             <!-- Big Hero Image Header (Prominent Height & Resolution) -->
             <div class="relative w-full h-52 sm:h-64 bg-slate-950 flex items-center justify-center overflow-hidden border-b border-slate-800/80 group">
-              ${m.image 
-                ? `<img src="${m.image}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="${m.name}" loading="lazy">` 
+              ${cardImg 
+                ? `<img src="${cardImg}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="${m.name}" loading="lazy">` 
                 : `<div class="text-7xl">${m.icon || '🍔'}</div>`
               }
               <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
@@ -9408,8 +9441,8 @@ window.addEventListener('DOMContentLoaded', () => {
           div.innerHTML = `
             <div>
               <div class="relative w-full h-36 sm:h-44 bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden mb-2.5 border border-slate-800/60">
-                ${m.image 
-                  ? `<img src="${m.image}" class="w-full h-full object-cover" alt="${m.name}" loading="lazy">` 
+                ${cardImg 
+                  ? `<img src="${cardImg}" class="w-full h-full object-cover" alt="${m.name}" loading="lazy">` 
                   : `<div class="text-5xl">${m.icon || '🍔'}</div>`
                 }
                 ${m.badge ? `<span class="absolute top-2 right-2 text-[10px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-lg font-black shadow">${m.badge}</span>` : ''}
@@ -9443,8 +9476,8 @@ window.addEventListener('DOMContentLoaded', () => {
           div.className = 'relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl min-h-[220px] flex flex-col justify-end p-5 text-right transition-all hover:border-amber-500/60 group cursor-pointer ' + (isOutOfStock ? 'opacity-50' : '');
           div.onclick = (e) => { if (!e.target.closest('button')) triggerItemCustomizer(m, 'CUSTOMER'); };
           div.innerHTML = `
-            ${m.image 
-              ? `<img src="${m.image}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 z-0" alt="${m.name}" loading="lazy">` 
+            ${cardImg 
+              ? `<img src="${cardImg}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 z-0" alt="${m.name}" loading="lazy">` 
               : `<div class="absolute inset-0 bg-slate-950 flex items-center justify-center text-8xl opacity-30 z-0">${m.icon || '🍔'}</div>`
             }
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent z-10 pointer-events-none"></div>
@@ -9477,8 +9510,8 @@ window.addEventListener('DOMContentLoaded', () => {
           div.onclick = (e) => { if (!e.target.closest('button')) triggerItemCustomizer(m, 'CUSTOMER'); };
           div.innerHTML = `
             <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0 text-4xl shadow">
-              ${m.image 
-                ? `<img src="${m.image}" class="w-full h-full object-cover" alt="${m.name}" loading="lazy">` 
+              ${cardImg 
+                ? `<img src="${cardImg}" class="w-full h-full object-cover" alt="${m.name}" loading="lazy">` 
                 : (m.icon || '🍔')
               }
             </div>
@@ -12005,6 +12038,35 @@ for(const id of ['hdr-phone1-val','card-phone1-display']){const e=document.getEl
 for(const id of ['hdr-phone2-val','card-phone2-display']){const e=document.getElementById(id);if(e&&e.textContent!=='01013376681')e.textContent='01013376681';}
 }
 contacts();new MutationObserver(contacts).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['href']});
+})();
+</script>
+  <script id="cinematic-3d-cards">
+(function(){
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  function isCine(){ return document.body && document.body.classList.contains('theme-360-cinematic'); }
+  document.addEventListener('pointermove', function(e){
+    if (!isCine()) return;
+    var card = e.target && e.target.closest ? e.target.closest('.theme-meal-card') : null;
+    document.querySelectorAll('.theme-meal-card.cine-hover').forEach(function(c){
+      if (c !== card) { c.classList.remove('cine-hover'); c.style.transform = ''; c.style.boxShadow = ''; }
+    });
+    if (!card) return;
+    var r = card.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    var px = (e.clientX - r.left) / r.width - 0.5;
+    var py = (e.clientY - r.top) / r.height - 0.5;
+    card.classList.add('cine-hover');
+    card.style.transform = 'rotateX(' + (-py * 7).toFixed(2) + 'deg) rotateY(' + (px * 9).toFixed(2) + 'deg) translateY(-6px) scale(1.015)';
+    card.style.boxShadow = '0 34px 70px -20px rgba(0,0,0,.85), 0 20px 46px -16px rgba(245,158,11,.28)';
+  }, { passive: true });
+  document.addEventListener('pointerout', function(e){
+    var card = e.target && e.target.closest ? e.target.closest('.theme-meal-card') : null;
+    if (card && !card.contains(e.relatedTarget)) {
+      card.classList.remove('cine-hover');
+      card.style.transform = '';
+      card.style.boxShadow = '';
+    }
+  }, { passive: true });
 })();
 </script>
 </body>
