@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crash-os-shell-staging-v2026-09-28';
+const CACHE_NAME = 'crash-os-shell-staging-v2026-11-22';
 const APP_SHELL = ['./', './index.html', './manifest.json', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', event => {
