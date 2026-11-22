@@ -8694,6 +8694,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function applyActiveCustomization() {
       const cfg = getTenantCustomSettings(activeTenantId);
+      // One-time upgrade (owner-ordered, Nov 2026): move everyone to the new cinematic
+      // design set once. The full theme gallery still allows switching back or to any
+      // other design at any time from the owner control panel.
+      try {
+        if (typeof SafeStorage !== 'undefined' && !SafeStorage.get('cine_theme_migrated_v1')) {
+          cfg.themeId = 'cinematic';
+          saveTenantCustomSettings(activeTenantId, cfg);
+          SafeStorage.set('cine_theme_migrated_v1', '1');
+        }
+      } catch (migErr) {}
       const theme = LUXURY_THEMES.find(t => t.id === cfg.themeId) || LUXURY_THEMES[0];
 
       // Remove any existing theme-360-* classes from body and outer frame
