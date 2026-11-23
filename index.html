@@ -875,6 +875,7 @@
           📱 منيو العميل الذكي
         </button>
       </div>
+      <p id="panel-nav-hint">↔ اسحب شريط الأقسام يمين وشمال لعرض باقي الأدوات</p>
 
     </div>
   </header>
@@ -12189,6 +12190,48 @@ body{font-size:17px}
 })();
 </script>
 
+
+
+<style id="mobile-panel-nav-v2">
+  /* Keep full-size labels inside a bounded, touch-scrollable RTL strip. */
+  #main-app-header > div { min-width: 0; }
+  #main-nav-container {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    align-items: stretch;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #d97706 #0f172a;
+    scroll-padding-inline: 4px;
+  }
+  #main-nav-container::-webkit-scrollbar { display: block; height: 4px; }
+  #main-nav-container::-webkit-scrollbar-thumb { background: #d97706; border-radius: 4px; }
+  #main-nav-container > .nav-tab {
+    flex: 0 0 auto;
+    min-width: max-content;
+    min-height: 44px;
+    white-space: nowrap;
+    line-height: 1.6;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  #main-nav-container > .nav-tab:not(.hidden) { display: inline-flex; }
+  #panel-nav-hint { flex: 0 0 100%; width: 100%; margin-top: -6px; color: #fbbf24; font-size: 13px; line-height: 1.6; }
+  @media (min-width: 1024px) {
+    #main-app-header > div { flex-wrap: wrap; }
+  }
+  @media (max-width: 639px) {
+    #main-nav-container > .nav-tab { min-width: 0; max-width: calc(100vw - 42px); white-space: normal; }
+    #main-nav-container > .nav-tab > span { white-space: normal; }
+    #tenant-selector-box { min-width: 0; max-width: 100%; }
+    #global-tenant-selector { min-width: 0; max-width: 100%; }
+  }
+</style>
 
 </body>
 </html>
